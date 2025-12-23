@@ -1,88 +1,115 @@
 <!-- src/views/scoring.vue -->
-<template>
+<template>  
   <div class="scoring-container">
     <el-card class="card">
-      <h1>深圳刚需购房评分表（打分 + 自动计算）</h1>
-      <div class="desc">
-        评分说明：总分 100 分。决策阈值：≥80 分（强烈推荐入手）、60-79 分（谨慎考虑，需优化短板）、＜60 分（不建议入手）。<br />
-        权重规则：每个二级子项的最终得分 = "我的打分" × 一级维度权重 ÷ 该维度下二级子项数量。例如：预算适配性 30% 权重下有 3 个子项，则每个子项权重为 10%。
+      <template #header>
+        <div class="card-header" @click="toggleCard('intro')">
+          <span>深圳刚需购房评分表（打分 + 自动计算）</span>
+          <el-icon class="collapse-icon" :class="{ 'rotate-180': !collapsedCards.intro }">
+            <ArrowDown />
+          </el-icon>
+        </div>
+      </template>
+      <div v-show="!collapsedCards.intro" class="card-content">
+        <div class="desc">
+          评分说明：总分 100 分。决策阈值：≥80 分（强烈推荐入手）、60-79 分（谨慎考虑，需优化短板）、＜60 分（不建议入手）。<br />
+          权重规则：每个二级子项的最终得分 = "我的打分" × 一级维度权重 ÷ 该维度下二级子项数量。例如：预算适配性 30% 权重下有 3 个子项，则每个子项权重为 10%。
+        </div>
       </div>
     </el-card>
 
     <!-- 基础测算表单 -->
     <el-card class="card" id="basic-form-card">
-      <div class="dim-title">基础测算表单</div>
-      <div class="desc">填写基础参数后，系统将自动推算"预算适配性"的三个子项分数并填入表格。</div>
-      <el-form :model="formData" :label-width="isSmallScreen() ? '50%': '35%'" class="basic-form">
-        <el-row :gutter="20">
-          <el-col :xs="24" :sm="12" v-for="field in formFields" :key="field.prop">
-            <el-form-item :label="field.label" class="form-item-responsive">
-              <template v-if="field.type === 'select'">
-                <el-select v-model="formData[field.prop]" :style="field.style" @change="handleLoanTypeChange"
-                  :placeholder="field.placeholder" class="full-width">
-                  <el-option v-for="option in field.options" :key="option.value" :value="option.value"
-                    :label="option.label" />
-                </el-select>
-              </template>
-              <template v-else>
-                <el-input v-model.number="formData[field.prop]" :type="field.type" :min="field.min" :max="field.max"
-                  :step="field.step" :placeholder="field.placeholder" @blur="autoFillBudgetScores" class="full-width" />
-              </template>
-              <span v-if="field.tip" class="muted tip">{{ field.tip }}</span>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <!-- 组合贷特殊字段 -->
-        <div v-if="formData.loanType === 'combine'" class="combine-loan-fields">
-          <el-divider>组合贷金额分配</el-divider>
+      <template #header>
+        <div class="card-header" @click="toggleCard('basic')">
+          <span>基础测算表单</span>
+          <el-icon class="collapse-icon" :class="{ 'rotate-180': !collapsedCards.basic }">
+            <ArrowDown />
+          </el-icon>
+        </div>
+      </template>
+      <div v-show="!collapsedCards.basic" class="card-content">
+        <div class="desc">填写基础参数后，系统将自动推算"预算适配性"的三个子项分数并填入表格。</div>
+        <el-form :model="formData" :label-width="isSmallScreen() ? '50%': '35%'" class="basic-form">
           <el-row :gutter="20">
-            <el-col :xs="24" :sm="12" v-for="field in combineLoanFields" :key="field.prop">
+            <el-col :xs="24" :sm="12" v-for="field in formFields" :key="field.prop">
               <el-form-item :label="field.label" class="form-item-responsive">
-                <el-input v-model.number="formData[field.prop]" :type="field.type" :min="field.min" :step="field.step"
-                  :placeholder="field.placeholder" @blur="() => handleCombineLoanInput(field.inputType)"
-                  class="full-width" />
+                <template v-if="field.type === 'select'">
+                  <el-select v-model="formData[field.prop]" :style="field.style" @change="handleLoanTypeChange"
+                    :placeholder="field.placeholder" class="full-width">
+                    <el-option v-for="option in field.options" :key="option.value" :value="option.value"
+                      :label="option.label" />
+                  </el-select>
+                </template>
+                <template v-else>
+                  <el-input v-model.number="formData[field.prop]" :type="field.type" :min="field.min" :max="field.max"
+                    :step="field.step" :placeholder="field.placeholder" @blur="autoFillBudgetScores" class="full-width" />
+                </template>
+                <span v-if="field.tip" class="muted tip">{{ field.tip }}</span>
               </el-form-item>
             </el-col>
           </el-row>
-        </div>
-      </el-form>
 
-      <div class="dim-summary" id="calc-summary">
-        {{ calcSummary }}
+          <!-- 组合贷特殊字段 -->
+          <div v-if="formData.loanType === 'combine'" class="combine-loan-fields">
+            <el-divider>组合贷金额分配</el-divider>
+            <el-row :gutter="20">
+              <el-col :xs="24" :sm="12" v-for="field in combineLoanFields" :key="field.prop">
+                <el-form-item :label="field.label" class="form-item-responsive">
+                  <el-input v-model.number="formData[field.prop]" :type="field.type" :min="field.min" :step="field.step"
+                    :placeholder="field.placeholder" @blur="() => handleCombineLoanInput(field.inputType)"
+                    class="full-width" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </div>
+        </el-form>
+        <div class="dim-summary" id="calc-summary">
+          {{ calcSummary }}
+        </div>
+        <div class="dim-summary" id="safety-suggestion" style="color:var(--primary);margin-top:8px">
+          {{ safetySuggestion }}
+        </div>
       </div>
-      <div class="dim-summary" id="safety-suggestion" style="color:var(--primary);margin-top:8px">
-        {{ safetySuggestion }}
-      </div>
+    
     </el-card>
 
     <!-- 评分表格 -->
     <el-card class="card">
-      <div class="dim-title">场景：深圳刚需购房（核心：预算安全 + 基础配套）</div>
-      <el-table :data="scoreItems" border style="width: 100%">
-        <el-table-column prop="dimension" label="一级维度" :min-width="isSmallScreen() ? '50%': '100px'" />
-        <el-table-column prop="weight" label="权重" :min-width="isSmallScreen() ? '40%': '80px'"/>
-        <el-table-column prop="subItem" label="二级子项" :min-width="isSmallScreen() ? '70%': '200px'"/>
-        <el-table-column prop="criteria" label="评分标准（0-10 分）" :min-width="isSmallScreen() ? '90%': '280px'"/>
-        <el-table-column label="我的打分" :min-width="isSmallScreen() ? '100%': '80%'">
-          <template #default="scope">
-            <template v-if="scope && scope.row">
-              <el-select v-model="scope.row.score" @change="recalc" placeholder="请选择分数" filterable
-                allow-create class="full-width" >
-                <el-option v-for="option in getScoreOptions(scope.row.criteria)" 
-                  :key="option.value" 
-                  :value="option.value" 
-                  :label="option.label" />
-              </el-select>
-              <span class="weighted">加权得分：<b class="weighted-val">{{ scope.row.weightedScore.toFixed(1) }}</b> 分</span>
+      <template #header>
+        <div class="card-header" @click="toggleCard('scoring')">
+          <span>场景：深圳刚需购房（核心：预算安全 + 基础配套）</span>
+          <el-icon class="collapse-icon" :class="{ 'rotate-180': !collapsedCards.scoring }">
+            <ArrowDown />
+          </el-icon>
+        </div>
+      </template>
+      <div v-show="!collapsedCards.scoring" class="card-content">
+        <el-table :data="scoreItems" border style="width: 100%">
+          <el-table-column prop="dimension" label="一级维度" :min-width="isSmallScreen() ? '50%': '100px'" />
+          <el-table-column prop="weight" label="权重" :min-width="isSmallScreen() ? '40%': '80px'"/>
+          <el-table-column prop="subItem" label="二级子项" :min-width="isSmallScreen() ? '70%': '200px'"/>
+          <el-table-column prop="criteria" label="评分标准（0-10 分）" :min-width="isSmallScreen() ? '90%': '280px'"/>
+          <el-table-column label="我的打分" :min-width="isSmallScreen() ? '100%': '80%'">
+            <template #default="scope">
+              <template v-if="scope && scope.row">
+                <el-select v-model="scope.row.score" @change="recalc" placeholder="请选择分数" filterable
+                  allow-create class="full-width" >
+                  <el-option v-for="option in getScoreOptions(scope.row.criteria)" 
+                    :key="option.value" 
+                    :value="option.value" 
+                    :label="option.label" />
+                </el-select>
+                <span class="weighted">加权得分：<b class="weighted-val">{{ scope.row.weightedScore.toFixed(1) }}</b> 分</span>
+              </template>
             </template>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div id="dim-summaries" class="dim-summary" style="margin-top:10px">
-        {{ dimensionSummaries }}
+          </el-table-column>
+        </el-table>
+        <div id="dim-summaries" class="dim-summary" style="margin-top:10px">
+          {{ dimensionSummaries }}
+        </div>
       </div>
+     
     </el-card>
 
     <!-- 总分展示 -->
@@ -100,30 +127,39 @@
       </div>
     </el-card>
     <el-card class="card" v-if="showHistorySection">
-      <div class="dim-title">历史评分记录</div>
-      <el-table :data="sortedHistoryRecords" border style="width: 100%">
-        <el-table-column prop="date" label="评分时间" :min-width="isSmallScreen() ? '50%': '120px'" />
-        <el-table-column prop="totalScore" label="总分" :min-width="isSmallScreen() ? '50%': '80px'">
-          <template #default="scope">
-            <span :class="getScoreClass(scope.row.totalScore)">{{ scope.row.totalScore }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="price" label="房屋总价(万)" :min-width="isSmallScreen() ? '50%': '100px'" />
-        <el-table-column prop="dimensionBreakdown" label="维度得分" :min-width="isSmallScreen() ? '100%': '200px'"/>
-        <el-table-column prop="suggestion" label="智能建议" :min-width="isSmallScreen() ? '100%': '120px'" />
-        <el-table-column label="操作" width="160px">
-          <template #default="scope">
-            <el-button size="small" @click="viewRecord(scope.row)">查看</el-button>
-            <el-button size="small" type="danger" @click="deleteRecord(scope.row.id)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="history-summary">
-        <span>历史最高分：<strong>{{ maxScore }}</strong> 分</span>
-        <span style="margin-left: 20px">历史平均分：<strong>{{ avgScore.toFixed(1) }}</strong> 分</span>
-        <span style="margin-left: 20px">共 <strong>{{ historyRecords.length }}</strong> 次评分</span>
+      <template #header>
+        <div class="card-header" @click="toggleCard('history')">
+          <span>历史评分记录</span>
+          <el-icon class="collapse-icon" :class="{ 'rotate-180': !collapsedCards.history }">
+            <ArrowDown />
+          </el-icon>
+        </div>
+      </template>
+      <div v-show="!collapsedCards.history" class="card-content">
+        <el-table :data="sortedHistoryRecords" border style="width: 100%">
+          <el-table-column prop="date" label="评分时间" :min-width="isSmallScreen() ? '50%': '120px'" />
+          <el-table-column prop="totalScore" label="总分" :min-width="isSmallScreen() ? '50%': '80px'">
+            <template #default="scope">
+              <span :class="getScoreClass(scope.row.totalScore)">{{ scope.row.totalScore }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="price" label="房屋总价(万)" :min-width="isSmallScreen() ? '50%': '100px'" />
+          <el-table-column prop="dimensionBreakdown" label="维度得分" :min-width="isSmallScreen() ? '100%': '200px'"/>
+          <el-table-column prop="suggestion" label="智能建议" :min-width="isSmallScreen() ? '100%': '120px'" />
+          <el-table-column label="操作" width="160px">
+            <template #default="scope">
+              <el-button size="small" @click="viewRecord(scope.row)">查看</el-button>
+              <el-button size="small" type="danger" @click="deleteRecord(scope.row.id)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div class="history-summary">
+          <span>历史最高分：<strong>{{ maxScore }}</strong> 分</span>
+          <span style="margin-left: 20px">历史平均分：<strong>{{ avgScore.toFixed(1) }}</strong> 分</span>
+          <span style="margin-left: 20px">共 <strong>{{ historyRecords.length }}</strong> 次评分</span>
+        </div>
       </div>
+      
     </el-card>
   </div>
 </template>
@@ -174,7 +210,14 @@ export default {
       levelText: '不建议入手',
       adviceText: '请在表格中为各子项输入 0-10 的整数分，系统将自动计算加权得分与等级建议。',
       isMobile: false,
-      deviceInfo: {} // 新增设备信息对象
+      deviceInfo: {},
+      collapsedCards: {
+        intro: false,      // 说明卡片
+        basic: false,      // 基础测算表单
+        scoring: false,    // 评分表格
+        total: false,      // 总分展示
+        history: false     // 历史记录
+      }
     }
   },
   created() {
@@ -666,6 +709,11 @@ export default {
     isSmallScreen() {
       return this.isMobile || this.deviceInfo.screenSize === 'sm';
     },
+    // 切换卡片收起状态
+    toggleCard(cardKey) {
+      this.collapsedCards[cardKey] = !this.collapsedCards[cardKey]
+    },
+
   },
   mounted() {
     this.recalc()
@@ -696,7 +744,33 @@ export default {
   border-radius: 10px;
   margin-bottom: 16px;
 }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 0;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--el-text-color-primary);
+}
 
+.card-header:hover {
+  background-color: var(--el-bg-color-page);
+  border-radius: 4px;
+}
+
+.collapse-icon {
+  transition: transform 0.3s ease;
+  color: var(--el-text-color-secondary);
+}
+
+.collapse-icon.rotate-180 {
+  transform: rotate(180deg);
+}
+.card-content {
+  padding-top: 12px;
+}
 h1 {
   margin: 0 0 10px;
   font-size: 22px;
