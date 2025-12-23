@@ -5,7 +5,6 @@
 <template>
   <div>
     <nav>
-      <router-link to="/">首页</router-link> |
       <router-link to="/scoring">购房评分表</router-link>
     </nav>
     <router-view />
