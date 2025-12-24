@@ -1,6 +1,8 @@
 // src/router/index.js
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router' 
 import ScoringView from '@/views/scoring.vue'
+import ImprovementView from '@/views/improvement.vue'
+import SecondhandView from '@/views/secondhand.vue'
 import HistoryView from '@/views/history.vue'
 
 const routes = [
@@ -17,6 +19,16 @@ const routes = [
     path: '/history',
     name: 'History',
     component: HistoryView
+  },
+  {
+    path: '/improvement',
+    name: 'Improvement',
+    component: ImprovementView
+  },
+  {
+    path: '/secondhand',
+    name: 'Secondhand',
+    component: SecondhandView
   }
 ]
 

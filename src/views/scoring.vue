@@ -193,8 +193,6 @@ export default {
     // 使用工具类初始化设备检测
     this.updateDeviceInfo();
     this.initScoreItems()
-    // 创建后立即检查是否有历史记录
-    this.showHistorySection = this.historyRecords.length > 0;
   },
   computed: {
     
@@ -550,6 +548,7 @@ export default {
         id: Date.now().toString(),
         date: new Date().toLocaleString('zh-CN'),
         totalScore: this.totalScore,
+        type: '刚需购房',
         price: this.formData.price || 0,
         dimensionBreakdown: this.getDimensionBreakdown(),
         suggestion: this.generateSmartSuggestion(),
@@ -560,7 +559,6 @@ export default {
       this.historyRecords.unshift(record);
       this.saveHistoryRecords();
       // 保存后立即显示历史记录区域
-      this.showHistorySection = true;
       this.$message.success(`评分已保存！当前总分：${this.totalScore}分,可在"历史记录"页面查看所有保存的评分`);
     },
     // 添加查看历史记录的方法

@@ -19,6 +19,7 @@
         
         <el-table :data="sortedHistoryRecords" border style="width: 100%">
           <el-table-column prop="date" label="评分时间" min-width="120px" />
+          <el-table-column prop="type" label="评分类型" min-width="100px" />
           <el-table-column prop="totalScore" label="总分" min-width="80px">
             <template #default="scope">
               <span :class="getScoreClass(scope.row.totalScore)">{{ scope.row.totalScore }}</span>
@@ -82,15 +83,15 @@ export default {
   methods: {
     loadHistoryRecords() {
       try {
-        const stored = localStorage.getItem('houseScoringHistory');
+        const stored = localStorage.getItem('houseScoringHistory')
         if (stored) {
-          this.historyRecords = JSON.parse(stored);
+          this.historyRecords = JSON.parse(stored)
         } else {
-          this.historyRecords = [];
+          this.historyRecords = []
         }
       } catch (error) {
-        console.error('加载历史记录失败:', error);
-        this.historyRecords = [];
+        console.error('加载历史记录失败:', error)
+        this.historyRecords = []
       }
     },
     saveHistoryRecords() {
@@ -106,12 +107,17 @@ export default {
       if (score >= 60) return 'score-medium';
       return 'score-low';
     },
+    
     viewRecord(record) {
-      // 跳转到评分页面并传递记录ID
+      // 根据记录类型跳转到对应的评分页面
+      let targetRoute = '/scoring'
+      if (record.type === '改善型购房') targetRoute = '/improvement'
+      if (record.type === '二手房购房') targetRoute = '/secondhand'
+      
       this.$router.push({ 
-        path: '/scoring', 
+        path: targetRoute, 
         query: { loadRecord: record.id } 
-      });
+      })
     },
     deleteRecord(id) {
       this.$confirm('确定要删除这条记录吗？', '提示', {
