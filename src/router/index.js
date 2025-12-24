@@ -4,6 +4,7 @@ import ScoringView from '@/views/scoring.vue'
 import ImprovementView from '@/views/improvement.vue'
 import SecondhandView from '@/views/secondhand.vue'
 import HistoryView from '@/views/history.vue'
+import BudgetSimulatorView from '@/views/budget-simulator.vue'
 
 const routes = [
   {
@@ -29,6 +30,11 @@ const routes = [
     path: '/secondhand',
     name: 'Secondhand',
     component: SecondhandView
+  },
+  {
+    path: '/budget-simulator',
+    name: 'BudgetSimulator',
+    component: BudgetSimulatorView
   }
 ]
 

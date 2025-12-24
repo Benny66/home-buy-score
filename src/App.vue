@@ -7,6 +7,7 @@
       <router-link to="/scoring">刚需购房评估</router-link>
       <router-link to="/improvement">改善型购房评估</router-link>
       <router-link to="/secondhand">二手房购房评估</router-link>
+      <router-link to="/budget-simulator">动态预算模拟器</router-link>
       <router-link to="/history">历史记录</router-link>
     </nav>
     <router-view />
