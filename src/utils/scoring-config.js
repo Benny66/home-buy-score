@@ -30,6 +30,17 @@ export const FORM_FIELDS = [
     ]
   },
   {
+    prop: 'repaymentType', // 新增：还款方式
+    label: '还款方式',
+    type: 'select',
+    style: { width: '180px' },
+    options: [
+      { value: 'equalPrincipalInterest', label: '等额本息（每月还款额相同）' },
+      { value: 'equalPrincipal', label: '等额本金（每月递减还款）' }
+    ],
+    tip: '等额本息：月供固定；等额本金：前期月供较高，逐月递减'
+  },
+  {
     prop: 'rate',
     label: '年化利率（%）',
     type: 'number',

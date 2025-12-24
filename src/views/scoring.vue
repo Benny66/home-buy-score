@@ -35,7 +35,8 @@
             <el-col :xs="24" :sm="12" v-for="field in formFields" :key="field.prop">
               <el-form-item :label="field.label" class="form-item-responsive">
                 <template v-if="field.type === 'select'">
-                  <el-select v-model="formData[field.prop]" :style="field.style" @change="handleLoanTypeChange"
+                  <el-select v-model="formData[field.prop]" :style="field.style" 
+                    @change="field.prop === 'loanType' ? handleLoanTypeChange() : autoFillBudgetScores()"
                     :placeholder="field.placeholder" class="full-width">
                     <el-option v-for="option in field.options" :key="option.value" :value="option.value"
                       :label="option.label" />
@@ -178,7 +179,10 @@ import {
   getDeviceInfo, 
   addResizeListener 
 } from '@/utils/device-utils.js'
-
+// 导入贷款计算工具
+import { 
+  calcPaymentByType 
+} from '@/utils/loan-calculator.js'
 export default {
   name: 'ScoringView',
   data() {
@@ -192,6 +196,7 @@ export default {
         monthlyIncome: null,
         availableFunds: null,
         taxReservePct: 5,
+        repaymentType: 'equalPrincipalInterest', // 新增：还款方式，默认等额本息
         // 新增组合贷相关字段
         commercialLoanAmt: null,  // 商贷金额（万元）
         gjjLoanAmt: null,         // 公积金贷款金额（万元）
@@ -296,15 +301,7 @@ export default {
       // 按分数降序排列
       return options.sort((a, b) => b.value - a.value);
     },
-    // 等额本息月供估算
-    calcMonthlyPayment(principal, annualRate, years) {
-      if (!principal || !annualRate || !years) return null
-      const r = annualRate / 100 / 12 // 月利率
-      const n = years * 12 // 期数
-      const factor = Math.pow(1 + r, n)
-      const payment = principal * r * factor / (factor - 1)
-      return payment
-    },
+    
 
     // 贷款类型变化处理（修改）
     handleLoanTypeChange() {
@@ -369,7 +366,8 @@ export default {
 
     // 自动填充预算适配性分数（修改）
     autoFillBudgetScores() {
-      const { price, downRatio, rate, years, monthlyIncome, availableFunds, taxReservePct, loanType, commercialLoanAmt, gjjLoanAmt } = this.formData
+      const { price, downRatio, rate, years, monthlyIncome, availableFunds, 
+        taxReservePct, loanType, commercialLoanAmt, gjjLoanAmt, repaymentType  } = this.formData
 
       if (!price || !downRatio || !rate || !years) {
         this.calcSummary = '请至少填写：房屋总价、首付比例、贷款方式/利率、贷款年限。'
@@ -392,8 +390,8 @@ export default {
             return
           }
 
-          const commercialMonthly = this.calcMonthlyPayment(commercialLoanAmt, 3.1, years) // 商贷利率3.1%
-          const gjjMonthly = this.calcMonthlyPayment(gjjLoanAmt, 2.6, years) // 公积金利率2.6%
+          const commercialMonthly = calcPaymentByType(commercialLoanAmt, 3.1, years, repaymentType) // 商贷利率3.1%
+          const gjjMonthly = calcPaymentByType(gjjLoanAmt, 2.6, years, repaymentType) // 公积金利率2.6%
           monthlyPayWan = (commercialMonthly || 0) + (gjjMonthly || 0)
         } else {
           this.calcSummary = '组合贷模式下请填写贷款金额'
@@ -401,11 +399,11 @@ export default {
         }
       } else {
         // 单一贷款类型
-        monthlyPayWan = this.calcMonthlyPayment(totalLoanAmt, rate, years)
+        monthlyPayWan = calcPaymentByType(totalLoanAmt, rate, years, repaymentType)
       }
 
       // 更新月供安全建议
-      this.updateSafetySuggestion(monthlyPayWan)
+      this.updateSafetySuggestion(monthlyPayWan, repaymentType)
 
       // 计算首付压力评分
       if (availableFunds && availableFunds > 0) {
@@ -497,16 +495,22 @@ export default {
         parts.push(`公积金 ${payload.gjjLoanAmt.toFixed(2)} 万(2.6%)`)
       }
 
-      if (Number.isFinite(payload.monthlyPayWan)) parts.push(`月供≈ ${payload.monthlyPayWan.toFixed(2)} 万/月`)
+      if (Number.isFinite(payload.monthlyPayWan)) {
+        const monthlyDesc = this.formData.repaymentType === 'equalPrincipal' ? 
+          '首月月供' : '月供'
+        parts.push(`${monthlyDesc}≈ ${payload.monthlyPayWan.toFixed(2)} 万/月`)
+      }
 
       this.calcSummary = parts.join('； ')
     },
 
     // 更新安全建议
-    updateSafetySuggestion(monthlyPayWan) {
+    updateSafetySuggestion(monthlyPayWan, repaymentType) {
       if (monthlyPayWan && monthlyPayWan > 0) {
         const safeIncome = (monthlyPayWan / 0.3).toFixed(2)
-        this.safetySuggestion = `安全月供建议：月供 ${monthlyPayWan.toFixed(2)} 万 → 建议家庭月收入 ≥ ${safeIncome} 万（月供占收入≤30%）`
+        const repaymentDesc = repaymentType === 'equalPrincipal' ? 
+          '（等额本金，首月月供较高）' : '（等额本息，月供固定）'
+        this.safetySuggestion = `安全月供建议：月供 ${monthlyPayWan.toFixed(2)} 万${repaymentDesc} → 建议家庭月收入 ≥ ${safeIncome} 万（月供占收入≤30%）`
       } else {
         this.safetySuggestion = '安全月供建议：月供不超过家庭月收入的30%'
       }
