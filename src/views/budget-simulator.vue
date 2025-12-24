@@ -226,7 +226,6 @@ function renderChart() {
 
   const { baseline, scenario } = seriesData.value
   const criticalPoints = findCriticalPoints(scenario.details)
-
   // 构建超标区域数据（>40% 的部分）
   const exceedAreaData = scenario.details.map((detail, index) => {
     return detail.ratio >= 0.4 ? [detail.year, detail.ratio * 100] : [detail.year, 0]
@@ -237,10 +236,15 @@ function renderChart() {
     ...scenario.details.map(d => d.monthlyPay),
     ...baseline.details.map(d => d.monthlyPay)
   )
-
+  // 计算占比的最大值，用于设置y轴范围
+  const maxRatio = Math.max(
+    ...scenario.details.map(d => d.ratio * 100),
+    ...baseline.details.map(d => d.ratio * 100),
+    50 // 最小显示50%
+  )
   const option = {
     title: {
-      text: '月供压力趋势分析',
+      text: `月供压力趋势分析 - ${repaymentType.value === 'equalPrincipal' ? '等额本金' : '等额本息'}`,
       left: 'center',
       textStyle: {
         fontSize: 16,
@@ -250,27 +254,35 @@ function renderChart() {
     tooltip: {
       trigger: 'axis',
       formatter: function (params) {
-        const year = params[0].axisValue
-        const detail = scenario.details.find(d => d.year === year)
-        if (!detail) return ''
+        // 修复：从第一个系列的数据中获取年份
+        const yearData = params.find(param => param.seriesName === '当前场景')
+        if (!yearData) return ''
+        
+        const year = yearData.value[0]
+        const scenarioDetail = scenario.details.find(d => d.year === year)
+        const baselineDetail = baseline.details.find(d => d.year === year)
+        
+        if (!scenarioDetail) return ''
 
-        let result = `第 ${year} 年<br/>`
-        params.forEach(param => {
-          if (param.seriesName === '超标区域') return
-
-          const value = param.value[1]
-          if (param.seriesName.includes('月供')) {
-            result += `${param.marker} ${param.seriesName}: ${Math.round(value).toLocaleString()} 元<br/>`
-          } else {
-            result += `${param.marker} ${param.seriesName}: ${value.toFixed(1)}%<br/>`
-          }
-        })
-
-        if (detail) {
-          result += `月供: ${Math.round(detail.monthlyPay).toLocaleString()} 元<br/>`
-          result += `占比: ${(detail.ratio * 100).toFixed(1)}%<br/>`
-          result += `剩余本金: ${Math.round(detail.remainingPrincipal).toLocaleString()} 元`
-        }
+        let result = `<div style="font-weight: bold; margin-bottom: 8px;">第 ${year} 年</div>`
+        
+        // 当前场景信息
+        result += `<div style="color: #5470c6; font-weight: 500; margin-bottom: 6px;">当前场景</div>`
+        result += `<div style="margin-left: 10px;">`
+        result += `月供: <span style="float: right;">${Math.round(scenarioDetail.monthlyPay).toLocaleString()} 元</span><br/>`
+        result += `占比: <span style="float: right;">${(scenarioDetail.ratio * 100).toFixed(1)}%</span><br/>`
+        result += `剩余本金: <span style="float: right;">${Math.round(scenarioDetail.remainingPrincipal).toLocaleString()} 元</span><br/>`
+        result += `年利率: <span style="float: right;">${scenarioDetail.annualRate.toFixed(2)}%</span><br/>`
+        result += `月收入: <span style="float: right;">${Math.round(scenarioDetail.monthlyIncome).toLocaleString()} 元</span>`
+        result += `</div><br/>`
+        
+        // 无风险基线信息
+        result += `<div style="color: #91cc75; font-weight: 500; margin-bottom: 6px;">无风险基线</div>`
+        result += `<div style="margin-left: 10px;">`
+        result += `月供: <span style="float: right;">${Math.round(baselineDetail.monthlyPay).toLocaleString()} 元</span><br/>`
+        result += `占比: <span style="float: right;">${(baselineDetail.ratio * 100).toFixed(1)}%</span><br/>`
+        result += `剩余本金: <span style="float: right;">${Math.round(baselineDetail.remainingPrincipal).toLocaleString()} 元</span>`
+        result += `</div>`
 
         return result
       }
@@ -301,7 +313,7 @@ function renderChart() {
         type: 'value',
         name: '月供占收入比（%）',
         min: 0,
-        max: Math.max(...scenario.y.map(y => y * 100), 50),
+        max: maxRatio,
         axisLabel: {
           formatter: '{value}%'
         },
@@ -343,7 +355,7 @@ function renderChart() {
       {
         name: '无风险基线',
         type: 'line',
-        data: baseline.y.map(y => [baseline.x[baseline.y.indexOf(y)], y * 100]),
+        data: baseline.details.map(detail => [detail.year, detail.ratio * 100]),
         lineStyle: {
           color: '#91cc75',
           width: 2
@@ -356,7 +368,7 @@ function renderChart() {
       {
         name: '当前场景',
         type: 'line',
-        data: scenario.y.map(y => [scenario.x[scenario.y.indexOf(y)], y * 100]),
+        data: scenario.details.map(detail => [detail.year, detail.ratio * 100]),
         lineStyle: {
           color: '#5470c6',
           width: 3
@@ -402,7 +414,7 @@ function renderChart() {
         lineStyle: {
           color: '#ff7f50',
           width: 2,
-          type: 'dashed'
+          type: repaymentType.value === 'equalPrincipal' ? 'solid' : 'dashed'
         },
         itemStyle: {
           color: '#ff7f50'
@@ -417,7 +429,7 @@ function renderChart() {
         lineStyle: {
           color: '#73c0de',
           width: 2,
-          type: 'dashed'
+          type: repaymentType.value === 'equalPrincipal' ? 'solid' : 'dashed'
         },
         itemStyle: {
           color: '#73c0de'

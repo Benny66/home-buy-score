@@ -67,13 +67,17 @@ export function calcEqualPrincipalPayment(principal, annualRate, years) {
  * @returns {number|null} 月供金额（万元）
  */
 export function calcPaymentByType(principal, annualRate, years, repaymentType = 'equalPrincipalInterest') {
+  // 统一转换为元为单位进行计算
+  const principalInYuan = principal * 10000
+  
   if (repaymentType === 'equalPrincipal') {
     // 等额本金：返回第一年的月供（最高值）
-    const result = calcEqualPrincipalMonthly(principal, annualRate, years, 1)
+    const result = calcEqualPrincipalMonthly(principalInYuan, annualRate, years, 1)
     return result.monthlyPay / 10000 // 转换为万元
   } else {
     // 等额本息
-    return calcEqualPIMonthly(principal, annualRate, years) / 10000 // 转换为万元
+    const monthlyPay = calcEqualPIMonthly(principalInYuan, annualRate, years)
+    return monthlyPay ? monthlyPay / 10000 : null // 转换为万元
   }
 }
 // 新增：等额本息月供

@@ -99,16 +99,18 @@ export default {
     },
 
     calcSummary() {
-      const { principal, annualRate, years, monthlyIncome, repaymentType } = this.formData
+      const normalizedData = this.getNormalizedFormData()
+      const { principal, annualRate, years, monthlyIncome, repaymentType } = normalizedData
 
       if (!principal || !annualRate || !years || !monthlyIncome) {
         this.summary = ''
         return
       }
-
-      const monthlyPay = calcPaymentByType(principal, annualRate, years, repaymentType)
+      // 注意：calcPaymentByType 期望 principal 是以万元为单位的
+      const principalInWan = principal / 10000
+      const monthlyPay = calcPaymentByType(principalInWan, annualRate, years, repaymentType)
       const monthlyPayFormatted = monthlyPay ? monthlyPay.toFixed(2) : '计算中'
-      const pressureRatio = monthlyPay ? (monthlyPay / monthlyIncome * 100).toFixed(1) : '0.0'
+      const pressureRatio = monthlyPay ? (monthlyPay * 10000 / monthlyIncome * 100).toFixed(1) : '0.0'
 
       this.summary = `月供估算: ${monthlyPayFormatted} 万元/月 | 月供占收入比: ${pressureRatio}%`
 
