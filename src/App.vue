@@ -1,11 +1,11 @@
 <script setup>
-// 移除 HelloWorld 导入，因为现在通过路由显示
 </script>
 
 <template>
   <div>
     <nav>
       <router-link to="/scoring">购房评分表</router-link>
+      <router-link to="/history">历史记录</router-link>
     </nav>
     <router-view />
   </div>
@@ -15,19 +15,31 @@
 nav {
   padding: 20px;
   text-align: center;
+  background: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 nav a {
-  margin: 0 10px;
+  margin: 0 15px;
   text-decoration: none;
   color: #2c3e50;
+  font-size: 16px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+nav a:hover {
+  background-color: #e8f4fd;
 }
 
 nav a.router-link-active {
   color: #42b983;
   font-weight: bold;
+  background-color: #e8f4fd;
 }
 </style>
+
 
 
 

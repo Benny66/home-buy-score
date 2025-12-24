@@ -4,7 +4,7 @@
     <el-card class="card">
       <template #header>
         <div class="card-header" @click="toggleCard('intro')">
-          <span>深圳刚需购房评分表（打分 + 自动计算）</span>
+          <span>深圳刚需购房评分表（粗算）</span>
           <el-icon class="collapse-icon" :class="{ 'rotate-180': !collapsedCards.intro }">
             <ArrowDown />
           </el-icon>
@@ -127,41 +127,7 @@
         {{ adviceText }}
       </div>
     </el-card>
-    <el-card class="card" v-if="showHistorySection">
-      <template #header>
-        <div class="card-header" @click="toggleCard('history')">
-          <span>历史评分记录</span>
-          <el-icon class="collapse-icon" :class="{ 'rotate-180': !collapsedCards.history }">
-            <ArrowDown />
-          </el-icon>
-        </div>
-      </template>
-      <div v-show="!collapsedCards.history" class="card-content">
-        <el-table :data="sortedHistoryRecords" border style="width: 100%">
-          <el-table-column prop="date" label="评分时间" :min-width="isSmallScreen() ? '50%': '120px'" />
-          <el-table-column prop="totalScore" label="总分" :min-width="isSmallScreen() ? '50%': '80px'">
-            <template #default="scope">
-              <span :class="getScoreClass(scope.row.totalScore)">{{ scope.row.totalScore }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="price" label="房屋总价(万)" :min-width="isSmallScreen() ? '50%': '100px'" />
-          <el-table-column prop="dimensionBreakdown" label="维度得分" :min-width="isSmallScreen() ? '100%': '200px'"/>
-          <el-table-column prop="suggestion" label="智能建议" :min-width="isSmallScreen() ? '100%': '120px'" />
-          <el-table-column label="操作" width="160px">
-            <template #default="scope">
-              <el-button size="small" @click="viewRecord(scope.row)">查看</el-button>
-              <el-button size="small" type="danger" @click="deleteRecord(scope.row.id)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-        <div class="history-summary">
-          <span>历史最高分：<strong>{{ maxScore }}</strong> 分</span>
-          <span style="margin-left: 20px">历史平均分：<strong>{{ avgScore.toFixed(1) }}</strong> 分</span>
-          <span style="margin-left: 20px">共 <strong>{{ historyRecords.length }}</strong> 次评分</span>
-        </div>
-      </div>
-      
-    </el-card>
+   
   </div>
 </template>
 
@@ -201,8 +167,6 @@ export default {
         commercialLoanAmt: null,  // 商贷金额（万元）
         gjjLoanAmt: null,         // 公积金贷款金额（万元）
         historyRecords: [], // 历史记录数组
-        showHistorySection: false, // 控制历史记录部分的显示
-        sortBy: 'date-desc' // 排序方式
       },
       formFields: FORM_FIELDS,
       combineLoanFields: COMBINE_LOAN_FIELDS,
@@ -229,37 +193,11 @@ export default {
     // 使用工具类初始化设备检测
     this.updateDeviceInfo();
     this.initScoreItems()
-    this.loadHistoryRecords();
     // 创建后立即检查是否有历史记录
     this.showHistorySection = this.historyRecords.length > 0;
   },
   computed: {
-    // 排序后的历史记录
-    sortedHistoryRecords() {
-      const records = [...this.historyRecords];
-      switch (this.sortBy) {
-        case 'score-desc':
-          return records.sort((a, b) => b.totalScore - a.totalScore);
-        case 'score-asc':
-          return records.sort((a, b) => a.totalScore - b.totalScore);
-        case 'date-asc':
-          return records.sort((a, b) => new Date(a.date) - new Date(b.date));
-        default: // date-desc
-          return records.sort((a, b) => new Date(b.date) - new Date(a.date));
-      }
-    },
-    // 历史最高分
-    maxScore() {
-      return this.historyRecords.length > 0
-        ? Math.max(...this.historyRecords.map(r => r.totalScore))
-        : 0;
-    },
-    // 历史平均分
-    avgScore() {
-      return this.historyRecords.length > 0
-        ? this.historyRecords.reduce((sum, r) => sum + r.totalScore, 0) / this.historyRecords.length
-        : 0;
-    }
+    
   },
   methods: {
     initScoreItems() {
@@ -592,23 +530,6 @@ export default {
       this.adviceText = '请在表格中为各子项输入 0-10 的整数分，系统将自动计算加权得分与等级建议。'
     },
 
-    // 加载历史记录
-    loadHistoryRecords() {
-      try {
-        const stored = localStorage.getItem('houseScoringHistory');
-        if (stored) {
-          this.historyRecords = JSON.parse(stored);
-          // 加载后检查是否显示历史记录区域
-          this.showHistorySection = this.historyRecords.length > 0;
-        } else {
-          this.historyRecords = [];
-        }
-      } catch (error) {
-        console.error('加载历史记录失败:', error);
-        this.historyRecords = [];
-      }
-    },
-
     // 保存历史记录到localStorage
     saveHistoryRecords() {
       try {
@@ -640,7 +561,11 @@ export default {
       this.saveHistoryRecords();
       // 保存后立即显示历史记录区域
       this.showHistorySection = true;
-      this.$message.success(`评分已保存！当前总分：${this.totalScore}分`);
+      this.$message.success(`评分已保存！当前总分：${this.totalScore}分,可在"历史记录"页面查看所有保存的评分`);
+    },
+    // 添加查看历史记录的方法
+    goToHistory() {
+      this.$router.push('/history');
     },
     // 获取维度得分详情
     getDimensionBreakdown() {
@@ -661,37 +586,7 @@ export default {
       if (score >= 60) return '需优化';
       return '谨慎决策';
     },
-    // 获取分数样式类
-    getScoreClass(score) {
-      if (score >= 80) return 'score-high';
-      if (score >= 60) return 'score-medium';
-      return 'score-low';
-    },
-    // 查看历史记录
-    viewRecord(record) {
-      // 填充表单数据
-      this.formData = { ...record.formData };
-      this.scoreItems = record.scoreItems.map(item => ({ ...item }));
-
-      // 重新计算
-      this.recalc();
-
-      this.$message.info(`已加载 ${record.date} 的评分记录`);
-    },
-    // 删除记录
-    deleteRecord(id) {
-      this.$confirm('确定要删除这条记录吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.historyRecords = this.historyRecords.filter(record => record.id !== id);
-        this.saveHistoryRecords();
-        // 删除后检查是否还需要显示历史记录区域
-        this.showHistorySection = this.historyRecords.length > 0;
-        this.$message.success('记录已删除');
-      });
-    },
+    
     // 更新设备信息（简化版）
     updateDeviceInfo() {
       this.deviceInfo = getDeviceInfo();
