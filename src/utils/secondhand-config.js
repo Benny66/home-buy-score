@@ -1,5 +1,5 @@
 // 二手房购房评分配置
-export const SECONDHAND_SCORE_ITEMS_CONFIG = [
+export const SECONDHAND_SCORE_ITEMS_CONFIG = [ 
   {
     dimension: '产权风险',
     weight: 30,
@@ -27,7 +27,7 @@ export const SECONDHAND_SCORE_ITEMS_CONFIG = [
   {
     dimension: '房源品质',
     weight: 25,
-    count: 3,
+    count: 4, // 修改：从3改为4
     subItem: '房龄与折旧',
     item: 'houseAgeDepreciation',
     criteria: '≤5年（10分）、6-10年（8分）、11-15年（5分）、16-20年（3分）、＞20年（1分）'
@@ -35,7 +35,7 @@ export const SECONDHAND_SCORE_ITEMS_CONFIG = [
   {
     dimension: '房源品质',
     weight: 25,
-    count: 3,
+    count: 4, // 修改：从3改为4
     subItem: '房屋质量',
     item: 'houseQuality',
     criteria: '无漏水/空鼓/裂缝 + 水电线路正常（10分）、轻微问题（7分）、明显问题（3分）、严重问题（0分）'
@@ -43,10 +43,18 @@ export const SECONDHAND_SCORE_ITEMS_CONFIG = [
   {
     dimension: '房源品质',
     weight: 25,
-    count: 3,
+    count: 4, // 修改：从3改为4
     subItem: '装修适配',
     item: 'renovationFit',
     criteria: '近5年精装修（10分）、简装可直接入住（7分）、需局部翻新（4分）、需全拆重装（1分）'
+  },
+  {
+    dimension: '房源品质',
+    weight: 25,
+    count: 4, // 修改：从3改为4
+    subItem: '车位配比',
+    item: 'parkingRatio',
+    criteria: '车位充足（≥1:1）（10分）、基本满足（0.8-1:1）（7分）、紧张（0.5-0.8:1）（4分）、严重不足（＜0.5:1）（1分）'
   },
   {
     dimension: '预算适配性',
@@ -75,7 +83,7 @@ export const SECONDHAND_SCORE_ITEMS_CONFIG = [
   {
     dimension: '区域配套',
     weight: 15,
-    count: 2,
+    count: 3, // 修改：从2改为3
     subItem: '配套成熟度',
     item: 'facilityMaturity',
     criteria: '地铁 + 商超 + 学校 + 医院齐全（10分）、缺1项（7分）、缺2项（4分）、缺3项（1分）'
@@ -83,10 +91,18 @@ export const SECONDHAND_SCORE_ITEMS_CONFIG = [
   {
     dimension: '区域配套',
     weight: 15,
-    count: 2,
+    count: 3, // 修改：从2改为3
     subItem: '小区入住率',
     item: 'occupancyRate',
     criteria: '≥80%（10分）、60-79%（7分）、40-59%（4分）、＜40%（1分）'
+  },
+  {
+    dimension: '区域配套',
+    weight: 15,
+    count: 3, // 修改：从2改为3
+    subItem: '停车便利性',
+    item: 'parkingConvenience',
+    criteria: '固定车位+管理规范（10分）、有车位但管理一般（7分）、无固定车位但可停（4分）、停车困难（1分）'
   },
   {
     dimension: '居住需求匹配',
@@ -165,5 +181,32 @@ export const SECONDHAND_FORM_FIELDS = [
       { value: 'notfull2', label: '不满二' }
     ],
     tip: '影响税费成本评分'
+  },
+  // 新增：车位相关字段
+  {
+    prop: 'parkingRatio',
+    label: '车位配比',
+    type: 'select',
+    placeholder: '请选择车位配比情况',
+    options: [
+      { value: 'sufficient', label: '充足（≥1:1）' },
+      { value: 'adequate', label: '基本满足（0.8-1:1）' },
+      { value: 'tight', label: '紧张（0.5-0.8:1）' },
+      { value: 'insufficient', label: '严重不足（＜0.5:1）' }
+    ],
+    tip: '车位数量与住户数量比例'
+  },
+  {
+    prop: 'parkingType',
+    label: '停车类型',
+    type: 'select',
+    placeholder: '请选择停车类型',
+    options: [
+      { value: 'fixed', label: '固定车位+规范管理' },
+      { value: 'general', label: '有车位但管理一般' },
+      { value: 'unfixed', label: '无固定车位但可停' },
+      { value: 'difficult', label: '停车困难' }
+    ],
+    tip: '影响停车便利性评分'
   }
 ];

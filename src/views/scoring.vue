@@ -149,7 +149,8 @@ export default {
         intro: false,
         basic: false,
         scoring: false
-      }
+      },
+      currentRecordId: null, // 添加当前记录ID
     }
   },
   created() {
@@ -164,7 +165,48 @@ export default {
         weightedScore: 0
       }));
     },
-    
+    // 添加加载历史记录的方法
+    loadHistoryRecord(recordId) {
+      try {
+        const stored = localStorage.getItem('houseScoringHistory')
+        if (!stored) {
+          this.$message.warning('未找到历史记录')
+          return false
+        }
+
+        const allRecords = JSON.parse(stored)
+        const record = allRecords.find(r => r.id === recordId)
+        
+        if (!record) {
+          this.$message.warning('未找到对应的历史记录')
+          return false
+        }
+
+        // 填充表单数据
+        if (record.formData) {
+          this.formData = { ...record.formData }
+        }
+
+        // 填充评分项数据
+        if (record.scoreItems && Array.isArray(record.scoreItems)) {
+          this.scoreItems = record.scoreItems.map(item => ({
+            ...item
+          }))
+        }
+
+        // 重新计算总分
+        this.recalc()
+        this.autoFillBudgetScores() // 重新计算预算相关分数
+        
+        this.currentRecordId = recordId
+        this.$message.success('历史记录加载成功')
+        return true
+      } catch (error) {
+        console.error('加载历史记录失败:', error)
+        this.$message.error('加载历史记录失败')
+        return false
+      }
+    },
     // 贷款类型变化处理
     handleLoanTypeChange() {
       this.formData.rate = LOAN_TYPE_RATES[this.formData.loanType] || 2.8;
@@ -421,6 +463,22 @@ export default {
       this.levelClass = 'danger'
       this.levelText = '不建议入手'
       this.adviceText = '请在表格中为各子项输入 0-10 的整数分，系统将自动计算加权得分与等级建议。'
+      this.currentRecordId = null // 清除当前记录ID
+      this.formData = {
+        price: null,
+        downRatio: 20,
+        loanType: 'gjj',
+        rate: 2.6,
+        years: 30,
+        monthlyIncome: null,
+        availableFunds: null,
+        taxReservePct: 5,
+        repaymentType: 'equalPrincipalInterest',
+        commercialLoanAmt: null,
+        gjjLoanAmt: null,
+      }
+      this.calcSummary = '将根据上述参数自动计算：首付金额、贷款金额、月供估算、首付压力、月供压力、税费储备比例等。'
+      this.safetySuggestion = '安全月供建议：月供不超过家庭月收入的30%'
     },
 
     // 保存当前评分
@@ -431,7 +489,7 @@ export default {
       }
 
       const record = {
-        id: Date.now().toString(),
+        id: this.currentRecordId || Date.now().toString(), // 如果是加载的记录，使用原ID
         date: new Date().toLocaleString('zh-CN'),
         totalScore: this.totalScore,
         type: '刚需购房',
@@ -443,7 +501,11 @@ export default {
       };
 
       this.saveHistoryRecords(record);
-      this.$message.success(`评分已保存！当前总分：${this.totalScore}分,可在"历史记录"页面查看所有保存的评分`);
+      if (this.currentRecordId) {
+        this.$message.success(`评分已更新！当前总分：${this.totalScore}分`)
+      } else {
+        this.$message.success(`评分已保存！当前总分：${this.totalScore}分,可在"历史记录"页面查看所有保存的评分`);
+      }
     },
     // 获取维度得分详情
     getDimensionBreakdown() {
@@ -469,9 +531,21 @@ export default {
     // 保存历史记录到localStorage
     saveHistoryRecords(record) {
       try {
-        // 统一使用相同的localStorage key
         const allRecords = this.getAllHistoryRecords()
-        allRecords.unshift(record) // 添加最新记录
+        
+        if (this.currentRecordId) {
+          // 更新现有记录
+          const index = allRecords.findIndex(r => r.id === this.currentRecordId)
+          if (index !== -1) {
+            allRecords[index] = record
+          } else {
+            allRecords.unshift(record)
+          }
+        } else {
+          // 新增记录
+          allRecords.unshift(record)
+        }
+        
         localStorage.setItem('houseScoringHistory', JSON.stringify(allRecords))
       } catch (error) {
         console.error('保存历史记录失败:', error);
@@ -519,6 +593,24 @@ export default {
     this.removeResizeListener = addResizeListener((info) => {
       this.handleResize(info);
     });
+    // 检查URL参数并加载记录
+    this.$nextTick(() => {
+      const loadRecordId = this.$route.query.loadRecord
+      if (loadRecordId) {
+        this.loadHistoryRecord(loadRecordId)
+      }
+    })
+  },
+  // 监听路由变化
+  watch: {
+    '$route.query.loadRecord': {
+      handler(newVal) {
+        if (newVal) {
+          this.loadHistoryRecord(newVal)
+        }
+      },
+      immediate: false
+    }
   },
   beforeUnmount() {
     if (this.removeResizeListener) {

@@ -1,5 +1,5 @@
 <template>
-  <div class="improvement-container">
+  <div class="improvement-container"> 
     <!-- 说明卡片 -->
     <ScoringCard 
       title="深圳改善型购房评分表（核心：品质提升 + 配套升级）"
@@ -106,6 +106,7 @@ export default {
         basic: false,
         scoring: false
       },
+      currentRecordId: null, // 添加当前记录ID
     }
   },
   created() {
@@ -120,7 +121,46 @@ export default {
         weightedScore: 0
       }))
     },
+    loadHistoryRecord(recordId) {
+      try {
+        const stored = localStorage.getItem('houseScoringHistory')
+        if (!stored) {
+          this.$message.warning('未找到历史记录')
+          return false
+        }
 
+        const allRecords = JSON.parse(stored)
+        const record = allRecords.find(r => r.id === recordId)
+        
+        if (!record) {
+          this.$message.warning('未找到对应的历史记录')
+          return false
+        }
+
+        // 填充表单数据
+        if (record.formData) {
+          this.formData = { ...record.formData }
+        }
+
+        // 填充评分项数据
+        if (record.scoreItems && Array.isArray(record.scoreItems)) {
+          this.scoreItems = record.scoreItems.map(item => ({
+            ...item
+          }))
+        }
+
+        // 重新计算总分
+        this.recalc()
+        
+        this.currentRecordId = recordId
+        this.$message.success('历史记录加载成功')
+        return true
+      } catch (error) {
+        console.error('加载历史记录失败:', error)
+        this.$message.error('加载历史记录失败')
+        return false
+      }
+    },
     autoFillBudgetScores() {
       const { price, downRatio, monthlyIncome, availableFunds } = this.formData
 
@@ -223,6 +263,13 @@ export default {
       this.levelClass = 'danger'
       this.levelText = '不建议入手'
       this.adviceText = '请在表格中为各子项输入0-10的整数分，系统将自动计算加权得分与等级建议。'
+      this.currentRecordId = null // 清除当前记录ID
+      this.formData = {
+        price: null,
+        downRatio: 30,
+        monthlyIncome: null,
+        availableFunds: null
+      }
     },
 
     saveCurrentScore() {
@@ -232,7 +279,7 @@ export default {
       }
 
       const record = {
-        id: Date.now().toString(),
+        id: this.currentRecordId || Date.now().toString(), // 如果是加载的记录，使用原ID
         date: new Date().toLocaleString('zh-CN'),
         totalScore: this.totalScore,
         type: '改善型购房',
@@ -241,10 +288,14 @@ export default {
         suggestion: this.generateSmartSuggestion(),
         formData: { ...this.formData },
         scoreItems: this.scoreItems.map(item => ({ ...item }))
-        }
+      }
 
-        this.saveHistoryRecords(record)
+      this.saveHistoryRecords(record)
+      if (this.currentRecordId) {
+        this.$message.success(`改善型评分已更新！当前总分：${this.totalScore}分`)
+      } else {
         this.$message.success(`改善型评分已保存！当前总分：${this.totalScore}分`)
+      }
     },
     // 添加缺失的方法
     getDimensionBreakdown() {
@@ -265,17 +316,29 @@ export default {
     if (score >= 60) return '需优化'
     return '谨慎决策'
     },
-    // 保存评估到历史记录
+    // 修改保存到历史记录的方法，支持更新操作
     saveHistoryRecords(record) {
-        try {
-            // 统一使用相同的localStorage key
-            const allRecords = this.getAllHistoryRecords()
-            allRecords.unshift(record) // 添加最新记录
-            localStorage.setItem('houseScoringHistory', JSON.stringify(allRecords))
-        } catch (error) {
-            console.error('保存历史记录失败:', error)
-            this.$message.error('保存历史记录失败')
+      try {
+        const allRecords = this.getAllHistoryRecords()
+        
+        if (this.currentRecordId) {
+          // 更新现有记录
+          const index = allRecords.findIndex(r => r.id === this.currentRecordId)
+          if (index !== -1) {
+            allRecords[index] = record
+          } else {
+            allRecords.unshift(record)
+          }
+        } else {
+          // 新增记录
+          allRecords.unshift(record)
         }
+        
+        localStorage.setItem('houseScoringHistory', JSON.stringify(allRecords))
+      } catch (error) {
+        console.error('保存历史记录失败:', error)
+        this.$message.error('保存历史记录失败')
+      }
     },
     // 获取所有历史记录
     getAllHistoryRecords() {
@@ -301,6 +364,22 @@ export default {
       this.deviceInfo = info
       this.isMobile = info.isMobile
     })
+    this.$nextTick(() => {
+      const loadRecordId = this.$route.query.loadRecord
+      if (loadRecordId) {
+        this.loadHistoryRecord(loadRecordId)
+      }
+    })
+  },
+  watch: {
+    '$route.query.loadRecord': {
+      handler(newVal) {
+        if (newVal) {
+          this.loadHistoryRecord(newVal)
+        }
+      },
+      immediate: false
+    }
   },
   beforeUnmount() {
     if (this.removeResizeListener) {

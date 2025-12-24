@@ -1,5 +1,5 @@
 <template>
-  <div class="secondhand-container">
+  <div class="secondhand-container"> 
     <!-- 说明卡片 -->
     <ScoringCard 
       title="二手房购房评分表（核心：产权安全 + 房龄适配）"
@@ -99,7 +99,9 @@ export default {
         houseAge: null,
         communityAvgPrice: null,
         houseArea: null,
-        taxType: 'full5unique'
+        taxType: 'full5unique',
+        parkingRatio: null, // 新增：车位配比
+        parkingType: null,   // 新增：停车类型
       },
       formFields: SECONDHAND_FORM_FIELDS,
       scoreItems: [],
@@ -117,6 +119,7 @@ export default {
         basic: false,
         scoring: false
       },
+      currentRecordId: null, // 添加当前记录ID
     }
   },
   created() {
@@ -131,9 +134,50 @@ export default {
         weightedScore: 0
       }))
     },
+    // 添加加载历史记录的方法
+    loadHistoryRecord(recordId) {
+      try {
+        const stored = localStorage.getItem('houseScoringHistory')
+        if (!stored) {
+          this.$message.warning('未找到历史记录')
+          return false
+        }
 
+        const allRecords = JSON.parse(stored)
+        const record = allRecords.find(r => r.id === recordId)
+        
+        if (!record) {
+          this.$message.warning('未找到对应的历史记录')
+          return false
+        }
+
+        // 填充表单数据
+        if (record.formData) {
+          this.formData = { ...record.formData }
+        }
+
+        // 填充评分项数据
+        if (record.scoreItems && Array.isArray(record.scoreItems)) {
+          this.scoreItems = record.scoreItems.map(item => ({
+            ...item
+          }))
+        }
+
+        // 重新计算总分
+        this.recalc()
+        this.updateCalcSummary()
+        
+        this.currentRecordId = recordId
+        this.$message.success('历史记录加载成功')
+        return true
+      } catch (error) {
+        console.error('加载历史记录失败:', error)
+        this.$message.error('加载历史记录失败')
+        return false
+      }
+    },
     autoFillBudgetScores() {
-      const { price, houseAge, communityAvgPrice, houseArea, taxType } = this.formData
+      const { price, houseAge, communityAvgPrice, houseArea, taxType, parkingRatio, parkingType } = this.formData
 
       if (!price || !houseArea) {
         this.calcSummary = '请至少填写房屋总价和面积。'
@@ -153,6 +197,32 @@ export default {
 
         const priceValueItem = this.scoreItems.find(item => item.item === 'priceValue')
         if (priceValueItem) priceValueItem.score = priceScore
+      }
+      // 新增：车位配比自动评分
+      if (parkingRatio) {
+        let parkingRatioScore = 0
+        switch (parkingRatio) {
+          case 'sufficient': parkingRatioScore = 10; break
+          case 'adequate': parkingRatioScore = 7; break
+          case 'tight': parkingRatioScore = 4; break
+          case 'insufficient': parkingRatioScore = 1; break
+        }
+
+        const parkingRatioItem = this.scoreItems.find(item => item.item === 'parkingRatio')
+        if (parkingRatioItem) parkingRatioItem.score = parkingRatioScore
+      }
+      // 新增：停车便利性自动评分
+      if (parkingType) {
+        let parkingConvenienceScore = 0
+        switch (parkingType) {
+          case 'fixed': parkingConvenienceScore = 10; break
+          case 'general': parkingConvenienceScore = 7; break
+          case 'unfixed': parkingConvenienceScore = 4; break
+          case 'difficult': parkingConvenienceScore = 1; break
+        }
+
+        const parkingConvenienceItem = this.scoreItems.find(item => item.item === 'parkingConvenience')
+        if (parkingConvenienceItem) parkingConvenienceItem.score = parkingConvenienceScore
       }
 
       // 计算税费成本评分
@@ -188,7 +258,7 @@ export default {
     },
 
     updateCalcSummary() {
-      const { price, houseArea, houseAge, taxType } = this.formData
+      const { price, houseArea, houseAge, taxType, parkingRatio, parkingType } = this.formData
       const parts = []
 
       if (price) parts.push(`总价≈ ${price.toFixed(2)}万元`)
@@ -203,9 +273,27 @@ export default {
         }
         parts.push(`税费: ${taxLabels[taxType]}`)
       }
-
+      // 新增：车位信息
+      if (parkingRatio) {
+        const parkingRatioLabels = {
+          'sufficient': '车位充足',
+          'adequate': '车位基本满足',
+          'tight': '车位紧张',
+          'insufficient': '车位不足'
+        }
+        parts.push(`车位: ${parkingRatioLabels[parkingRatio]}`)
+      }
+      if (parkingType) {
+        const parkingTypeLabels = {
+          'fixed': '固定车位',
+          'general': '一般管理',
+          'unfixed': '无固定车位',
+          'difficult': '停车困难'
+        }
+        parts.push(`停车: ${parkingTypeLabels[parkingType]}`)
+      }
       this.calcSummary = parts.length > 0 ? parts.join('； ') : '请填写二手房基础信息。'
-      this.safetySuggestion = '二手房交易提示：务必核实产权、检查房屋质量、了解邻里环境'
+      this.safetySuggestion = '二手房交易提示：务必核实产权、检查房屋质量、了解车位情况和邻里环境'
     },
 
     recalc() {
@@ -264,6 +352,19 @@ export default {
       this.levelClass = 'danger'
       this.levelText = '不建议入手'
       this.adviceText = '请在表格中为各子项输入0-10的整数分，系统将自动计算加权得分与等级建议。'
+      this.currentRecordId = null // 清除当前记录ID
+      this.formData = {
+        price: null,
+        downRatio: 40,
+        houseAge: null,
+        communityAvgPrice: null,
+        houseArea: null,
+        taxType: 'full5unique',
+        parkingRatio: null, // 新增：重置车位配比
+        parkingType: null   // 新增：重置停车类型
+      }
+      this.calcSummary = '将根据上述参数自动计算：性价比、税费成本、维修储备等评分。'
+      this.safetySuggestion = '二手房重点关注：产权安全、房屋质量、税费成本、车位配置'
     },
 
     saveCurrentScore() {
@@ -273,7 +374,7 @@ export default {
         }
 
         const record = {
-            id: Date.now().toString(),
+            id: this.currentRecordId || Date.now().toString(), // 如果是加载的记录，使用原ID
             date: new Date().toLocaleString('zh-CN'),
             totalScore: this.totalScore,
             type: '二手房购房',
@@ -285,7 +386,11 @@ export default {
         }
 
         this.saveHistoryRecords(record)
-        this.$message.success(`二手房评分已保存！当前总分：${this.totalScore}分`)
+        if (this.currentRecordId) {
+          this.$message.success(`二手房评分已更新！当前总分：${this.totalScore}分`)
+        } else {
+          this.$message.success(`二手房评分已保存！当前总分：${this.totalScore}分`)
+        }
     },
 
     // 添加缺失的方法
@@ -308,15 +413,27 @@ export default {
     },
     // 保存评估到历史
     saveHistoryRecords(record) {
-        try {
-            // 统一使用相同的localStorage key
-            const allRecords = this.getAllHistoryRecords()
-            allRecords.unshift(record) // 添加最新记录
-            localStorage.setItem('houseScoringHistory', JSON.stringify(allRecords))
-        } catch (error) {
-            console.error('保存历史记录失败:', error)
-            this.$message.error('保存历史记录失败')
+      try {
+        const allRecords = this.getAllHistoryRecords()
+        
+        if (this.currentRecordId) {
+          // 更新现有记录
+          const index = allRecords.findIndex(r => r.id === this.currentRecordId)
+          if (index !== -1) {
+            allRecords[index] = record
+          } else {
+            allRecords.unshift(record)
+          }
+        } else {
+          // 新增记录
+          allRecords.unshift(record)
         }
+        
+        localStorage.setItem('houseScoringHistory', JSON.stringify(allRecords))
+      } catch (error) {
+        console.error('保存历史记录失败:', error)
+        this.$message.error('保存历史记录失败')
+      }
     },
     // 获取所有历史记录
     getAllHistoryRecords() {
@@ -343,6 +460,23 @@ export default {
       this.deviceInfo = info
       this.isMobile = info.isMobile
     })
+    // 添加：检查URL参数并加载记录
+    this.$nextTick(() => {
+      const loadRecordId = this.$route.query.loadRecord
+      if (loadRecordId) {
+        this.loadHistoryRecord(loadRecordId)
+      }
+    })
+  },
+  watch: {
+    '$route.query.loadRecord': {
+      handler(newVal) {
+        if (newVal) {
+          this.loadHistoryRecord(newVal)
+        }
+      },
+      immediate: false
+    }
   },
   beforeUnmount() {
     if (this.removeResizeListener) {
