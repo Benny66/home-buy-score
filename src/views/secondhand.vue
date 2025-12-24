@@ -117,7 +117,6 @@ export default {
         basic: false,
         scoring: false
       },
-      historyRecords: []
     }
   },
   created() {
@@ -285,8 +284,7 @@ export default {
             scoreItems: this.scoreItems.map(item => ({ ...item }))
         }
 
-        this.historyRecords.unshift(record)
-        this.saveHistoryRecords()
+        this.saveHistoryRecords(record)
         this.$message.success(`二手房评分已保存！当前总分：${this.totalScore}分`)
     },
 
@@ -308,19 +306,19 @@ export default {
         if (score >= 60) return '谨慎考虑'
         return '不建议入手'
     },
-
-    saveHistoryRecords() {
+    // 保存评估到历史
+    saveHistoryRecords(record) {
         try {
             // 统一使用相同的localStorage key
             const allRecords = this.getAllHistoryRecords()
-            allRecords.unshift(this.historyRecords[0]) // 添加最新记录
+            allRecords.unshift(record) // 添加最新记录
             localStorage.setItem('houseScoringHistory', JSON.stringify(allRecords))
         } catch (error) {
             console.error('保存历史记录失败:', error)
             this.$message.error('保存历史记录失败')
         }
     },
-
+    // 获取所有历史记录
     getAllHistoryRecords() {
         try {
             const stored = localStorage.getItem('houseScoringHistory')

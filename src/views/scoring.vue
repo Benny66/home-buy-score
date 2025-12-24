@@ -132,7 +132,6 @@ export default {
         // 组合贷相关字段
         commercialLoanAmt: null,
         gjjLoanAmt: null,
-        historyRecords: [],
       },
       formFields: FORM_FIELDS,
       combineLoanFields: COMBINE_LOAN_FIELDS,
@@ -443,8 +442,7 @@ export default {
         scoreItems: this.scoreItems.map(item => ({ ...item }))
       };
 
-      this.historyRecords.unshift(record);
-      this.saveHistoryRecords();
+      this.saveHistoryRecords(record);
       this.$message.success(`评分已保存！当前总分：${this.totalScore}分,可在"历史记录"页面查看所有保存的评分`);
     },
     // 获取维度得分详情
@@ -469,13 +467,25 @@ export default {
     },
     
     // 保存历史记录到localStorage
-    saveHistoryRecords() {
+    saveHistoryRecords(record) {
       try {
-        localStorage.setItem('houseScoringHistory', JSON.stringify(this.historyRecords));
+        // 统一使用相同的localStorage key
+        const allRecords = this.getAllHistoryRecords()
+        allRecords.unshift(record) // 添加最新记录
+        localStorage.setItem('houseScoringHistory', JSON.stringify(allRecords))
       } catch (error) {
         console.error('保存历史记录失败:', error);
         this.$message.error('保存历史记录失败');
       }
+    },
+    // 获取所有历史记录
+    getAllHistoryRecords() {
+        try {
+            const stored = localStorage.getItem('houseScoringHistory')
+            return stored ? JSON.parse(stored) : []
+        } catch (error) {
+            return []
+        }
     },
 
     // 更新设备信息
