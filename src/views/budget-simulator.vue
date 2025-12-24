@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'  
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'   
 import * as echarts from 'echarts'
 import {
   calcEqualPIMonthly,
@@ -19,6 +19,7 @@ function handleFormChange(normalizedData) {
   annualRate.value = normalizedData.annualRate
   years.value = normalizedData.years
   monthlyIncome.value = normalizedData.monthlyIncome / 10000
+  repaymentType.value = normalizedData.repaymentType // 处理还款方式
 }
 
 // 原有的响应式数据（保持兼容性）
@@ -26,6 +27,7 @@ const principal = ref(100)
 const annualRate = ref(4.2)
 const years = ref(30)
 const monthlyIncome = ref(2.5)
+const repaymentType = ref('equalPrincipalInterest') // 还款方式
 
 // 错误/边界保护（保持不变）
 const normalizedPrincipal = computed(() => Math.max(0, (Number(principal.value) || 0)) * 10000)
@@ -136,14 +138,16 @@ function recalc() {
     baseAnnualRate: normalizedRate.value,
     years: normalizedYears.value,
     baseMonthlyIncome: normalizedIncome.value,
-    events: normalizedEvents.value
+    events: normalizedEvents.value,
+    repaymentType: repaymentType.value // 传递还款方式
   })
   const baseline = buildPressureSeriesByYear({
     principal: normalizedPrincipal.value,
     baseAnnualRate: normalizedRate.value,
     years: normalizedYears.value,
     baseMonthlyIncome: normalizedIncome.value,
-    events: []
+    events: [],
+    repaymentType: repaymentType.value // 新增：传递还款方式
   })
 
   seriesData.value = {
@@ -228,6 +232,12 @@ function renderChart() {
     return detail.ratio >= 0.4 ? [detail.year, detail.ratio * 100] : [detail.year, 0]
   })
 
+  // 计算月供金额的最大值，用于设置y轴范围
+  const maxMonthlyPay = Math.max(
+    ...scenario.details.map(d => d.monthlyPay),
+    ...baseline.details.map(d => d.monthlyPay)
+  )
+
   const option = {
     title: {
       text: '月供压力趋势分析',
@@ -249,7 +259,11 @@ function renderChart() {
           if (param.seriesName === '超标区域') return
 
           const value = param.value[1]
-          result += `${param.marker} ${param.seriesName}: ${value.toFixed(1)}%<br/>`
+          if (param.seriesName.includes('月供')) {
+            result += `${param.marker} ${param.seriesName}: ${Math.round(value).toLocaleString()} 元<br/>`
+          } else {
+            result += `${param.marker} ${param.seriesName}: ${value.toFixed(1)}%<br/>`
+          }
         })
 
         if (detail) {
@@ -262,7 +276,7 @@ function renderChart() {
       }
     },
     legend: {
-      data: ['无风险基线', '当前场景', '超标区域'],
+      data: ['无风险基线', '当前场景', '超标区域', '当前月供', '基线月供'],
       top: 30
     },
     grid: {
@@ -282,25 +296,49 @@ function renderChart() {
         }
       }
     },
-    yAxis: {
-      type: 'value',
-      name: '月供占收入比（%）',
-      min: 0,
-      max: Math.max(...scenario.y.map(y => y * 100), 50),
-      axisLabel: {
-        formatter: '{value}%'
-      },
-      axisLine: {
-        lineStyle: {
-          color: '#666'
+    yAxis: [
+      {
+        type: 'value',
+        name: '月供占收入比（%）',
+        min: 0,
+        max: Math.max(...scenario.y.map(y => y * 100), 50),
+        axisLabel: {
+          formatter: '{value}%'
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#666'
+          }
+        },
+        splitLine: {
+          lineStyle: {
+            type: 'dashed'
+          }
         }
       },
-      splitLine: {
-        lineStyle: {
-          type: 'dashed'
+      {
+        type: 'value',
+        name: '月供金额（元）',
+        min: 0,
+        max: maxMonthlyPay,
+        axisLabel: {
+          formatter: function(value) {
+            if (value >= 10000) {
+              return (value / 10000).toFixed(1) + '万'
+            }
+            return value.toLocaleString()
+          }
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#ff7f50'
+          }
+        },
+        splitLine: {
+          show: false
         }
       }
-    },
+    ],
     series: [
       {
         name: '无风险基线',
@@ -357,6 +395,36 @@ function renderChart() {
         }
       },
       {
+        name: '当前月供',
+        type: 'line',
+        yAxisIndex: 1,
+        data: scenario.details.map(detail => [detail.year, detail.monthlyPay]),
+        lineStyle: {
+          color: '#ff7f50',
+          width: 2,
+          type: 'dashed'
+        },
+        itemStyle: {
+          color: '#ff7f50'
+        },
+        smooth: true
+      },
+      {
+        name: '基线月供',
+        type: 'line',
+        yAxisIndex: 1,
+        data: baseline.details.map(detail => [detail.year, detail.monthlyPay]),
+        lineStyle: {
+          color: '#73c0de',
+          width: 2,
+          type: 'dashed'
+        },
+        itemStyle: {
+          color: '#73c0de'
+        },
+        smooth: true
+      },
+      {
         name: '临界点',
         type: 'scatter',
         data: criticalPoints.map(point => [point.year, point.ratio * 100]),
@@ -381,7 +449,7 @@ function renderChart() {
   chartInstance.resize()
 }
 
-watch([principal, annualRate, years, monthlyIncome, normalizedEvents], recalc, { deep: true, immediate: true })
+watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentType], recalc, { deep: true, immediate: true })
 </script>
 
 <template>
@@ -416,45 +484,45 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents], recalc, {
 
       <!-- 自定义事件添加 -->
       <div class="custom-event-form">
-        <h4>自定义事件</h4>
-        <div class="form-row">
-          <div class="form-group">
-            <label>发生年份</label>
-            <select v-model="selectedYear">
-              <option
-                v-for="year in yearOptions"
-                :key="year"
-                :value="year"
-              >
-                第 {{ year }} 年
-              </option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>事件类型</label>
-            <select v-model="selectedEventType">
-              <option value="rate">LPR 浮动（百分比点）</option>
-              <option value="income-pct">收入按比例变化</option>
-              <option value="income-abs">收入绝对变化（元）</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>变化值</label>
-            <input
-              type="number"
-              v-model.number="selectedEventValue"
-              :step="selectedEventType === 'rate' ? 0.1 : selectedEventType === 'income-pct' ? 0.01 : 100"
-            />
-            <span class="value-hint">
-              {{ selectedEventType === 'rate' ? '个百分点' : selectedEventType === 'income-pct' ? '比例（如-0.1表示-10%）' : '元' }}
-            </span>
-          </div>
-
-          <button class="add-btn" @click="addEvent">添加事件</button>
+      <h4>自定义事件</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label>发生年份</label>
+          <select v-model="selectedYear">
+            <option
+              v-for="year in yearOptions"
+              :key="year"
+              :value="year"
+            >
+              第 {{ year }} 年
+            </option>
+          </select>
         </div>
+
+        <div class="form-group">
+          <label>事件类型</label>
+          <select v-model="selectedEventType">
+            <option value="rate">LPR 浮动（百分比点）</option>
+            <option value="income-pct">收入按比例变化</option>
+            <option value="income-abs">收入绝对变化（元）</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>变化值</label>
+          <input
+            type="number"
+            v-model.number="selectedEventValue"
+            :step="selectedEventType === 'rate' ? 0.1 : selectedEventType === 'income-pct' ? 0.01 : 100"
+          />
+          <span class="value-hint">
+            {{ selectedEventType === 'rate' ? '个百分点' : selectedEventType === 'income-pct' ? '比例（如-0.1表示-10%）' : '元' }}
+          </span>
+        </div>
+
+        <button class="add-btn" @click="addEvent">添加事件</button>
       </div>
+    </div>
 
       <!-- 事件列表 -->
       <div class="event-list-section">
@@ -505,6 +573,8 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents], recalc, {
         <li><span class="color-dot warn"></span> 预警线：40%</li>
         <li><span class="color-dot exceed"></span> 超标区域：>40% 使用红色半透明填充</li>
         <li><span class="color-dot critical"></span> 临界点：菱形标记，悬浮展示详细信息</li>
+        <li><span class="color-dot current-pay"></span> 当前月供：橙色虚线，显示实际月供金额</li>
+        <li><span class="color-dot baseline-pay"></span> 基线月供：蓝色虚线，显示无风险月供金额</li>
       </ul>
     </section>
   </div>
@@ -570,54 +640,75 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents], recalc, {
 }
 
 .custom-event-form h4 {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   color: #333;
+  font-size: 16px;
 }
 
 .form-row {
   display: flex;
-  gap: 12px;
-  align-items: end;
+  gap: 16px;
+  align-items: flex-end;
   flex-wrap: wrap;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  min-width: 120px;
+  min-width: 140px;
+  flex: 1;
 }
 
 .form-group label {
-  font-weight: bold;
-  margin-bottom: 4px;
+  font-weight: 600;
+  margin-bottom: 6px;
   font-size: 14px;
+  color: #333;
 }
 
 .form-group select,
 .form-group input {
-  padding: 8px;
+  padding: 10px 12px;
   border: 1px solid #d9d9d9;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 14px;
+  height: 40px;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
 }
-
+.form-group select:focus,
+.form-group input:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+}
 .value-hint {
   font-size: 12px;
   color: #666;
   margin-top: 4px;
+  line-height: 1.4;
 }
 
 .add-btn {
-  padding: 8px 16px;
+  padding: 10px 20px;
   background: #1890ff;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  height: fit-content;
+  height: 40px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  white-space: nowrap;
 }
 
 .add-btn:hover {
   background: #40a9ff;
+}
+
+.add-btn:active {
+  background: #096dd9;
 }
 
 .event-list-section {
@@ -748,6 +839,8 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents], recalc, {
 .warn { background-color: #fac858; }
 .exceed { background-color: rgba(255, 0, 0, 0.3); }
 .critical { background-color: #ff0000; }
+.current-pay { background-color: #ff7f50; }
+.baseline-pay { background-color: #73c0de; }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
@@ -759,7 +852,10 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents], recalc, {
   .form-group {
     min-width: auto;
   }
-
+  .add-btn {
+    margin-top: 8px;
+    height: 44px;
+  }
   .scenario-list {
     grid-template-columns: 1fr;
   }
@@ -768,6 +864,17 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents], recalc, {
     flex-direction: column;
     align-items: start;
     gap: 4px;
+  }
+}
+@media (max-width: 480px) {
+  .form-group select,
+  .form-group input {
+    height: 44px;
+  }
+  
+  .add-btn {
+    height: 48px;
+    font-size: 16px;
   }
 }
 </style>

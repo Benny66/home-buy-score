@@ -17,7 +17,31 @@ export function calcMonthlyPayment(principal, annualRate, years) {
   const payment = principal * r * factor / (factor - 1);
   return payment;
 }
-
+// 等额本金每月还款计算
+export function calcEqualPrincipalMonthly(principal, annualRate, years, currentYear = 1) {
+  const monthlyRate = annualRate / 100 / 12
+  const totalMonths = years * 12
+  const monthsPassed = (currentYear - 1) * 12
+  
+  // 每月偿还本金
+  const monthlyPrincipal = principal / totalMonths
+  
+  // 当前剩余本金
+  const remainingPrincipal = principal - (monthlyPrincipal * monthsPassed)
+  
+  // 当前月利息
+  const monthlyInterest = remainingPrincipal * monthlyRate
+  
+  // 当前月总还款
+  const monthlyPay = monthlyPrincipal + monthlyInterest
+  
+  return {
+    monthlyPay,
+    monthlyPrincipal,
+    monthlyInterest,
+    remainingPrincipal
+  }
+}
 /**
  * 等额本金月供计算（首月月供）
  * @param {number} principal - 贷款本金（万元）
@@ -42,11 +66,14 @@ export function calcEqualPrincipalPayment(principal, annualRate, years) {
  * @param {string} repaymentType - 还款方式：'equalPrincipal'（等额本金）或 'equalPrincipalInterest'（等额本息）
  * @returns {number|null} 月供金额（万元）
  */
-export function calcPaymentByType(principal, annualRate, years, repaymentType) {
+export function calcPaymentByType(principal, annualRate, years, repaymentType = 'equalPrincipalInterest') {
   if (repaymentType === 'equalPrincipal') {
-    return calcEqualPrincipalPayment(principal, annualRate, years);
+    // 等额本金：返回第一年的月供（最高值）
+    const result = calcEqualPrincipalMonthly(principal, annualRate, years, 1)
+    return result.monthlyPay / 10000 // 转换为万元
   } else {
-    return calcMonthlyPayment(principal, annualRate, years);
+    // 等额本息
+    return calcEqualPIMonthly(principal, annualRate, years) / 10000 // 转换为万元
   }
 }
 // 新增：等额本息月供
@@ -84,61 +111,66 @@ export function remainingPrincipalEqualPrincipal(principal, years, paidMonths) {
   // 新增：按照“年度”为步长，基于风险事件构建月供压力趋势（等额本息近似）
   // events: 数组 [{ year: 1..years, rateDeltaPct: -0.2..+0.2, incomeDeltaPct: -0.5..+0.5, incomeDeltaAbs: -2000..}, ...]
 export function buildPressureSeriesByYear({
-    principal,
-    baseAnnualRate, // 初始 LPR/年化利率（%）
-    years,
-    baseMonthlyIncome,
-    events = []
-  }) {
-    if (!principal || !baseAnnualRate || !years || !baseMonthlyIncome) {
-      return { x: [], y: [], details: [] };
+  principal,
+  baseAnnualRate,
+  years,
+  baseMonthlyIncome,
+  events = [],
+  repaymentType = 'equalPrincipalInterest' // 新增参数
+}) {
+  const details = []
+  const x = []
+  const y = []
+  
+  let currentRate = baseAnnualRate
+  let currentIncome = baseMonthlyIncome
+  
+  for (let year = 1; year <= years; year++) {
+    // 应用事件
+    const yearEvents = events.filter(e => e.year === year)
+    yearEvents.forEach(event => {
+      if (event.rateDeltaPct) {
+        currentRate += event.rateDeltaPct
+      } else if (event.incomeDeltaPct) {
+        currentIncome *= (1 + event.incomeDeltaPct)
+      } else if (event.incomeDeltaAbs) {
+        currentIncome += event.incomeDeltaAbs
+      }
+    })
+    
+    // 根据还款方式计算月供
+    let monthlyPay
+    let remainingPrincipal
+    
+    if (repaymentType === 'equalPrincipal') {
+      const result = calcEqualPrincipalMonthly(principal, currentRate, years, year)
+      monthlyPay = result.monthlyPay
+      remainingPrincipal = result.remainingPrincipal
+    } else {
+      // 默认等额本息
+      monthlyPay = calcEqualPIMonthly(principal, currentRate, years)
+      // 计算剩余本金（简化计算）
+      const totalMonths = years * 12
+      const monthsPassed = (year - 1) * 12
+      const monthlyRate = currentRate / 100 / 12
+      remainingPrincipal = principal * 
+        (Math.pow(1 + monthlyRate, totalMonths) - Math.pow(1 + monthlyRate, monthsPassed)) / 
+        (Math.pow(1 + monthlyRate, totalMonths) - 1)
     }
-  
-    // 预处理事件，累计到某年生效（简化：当年起全年的利率/收入按新水平）
-    const yearlyAdjust = [];
-    for (let y = 1; y <= years; y++) {
-      const e = events.filter(e => e.year === y);
-      const rateDeltaSum = e.reduce((s, it) => s + (it.rateDeltaPct || 0), 0);
-      const incomePctSum = e.reduce((s, it) => s + (it.incomeDeltaPct || 0), 0);
-      const incomeAbsSum = e.reduce((s, it) => s + (it.incomeDeltaAbs || 0), 0);
-      yearlyAdjust.push({ year: y, rateDeltaSum, incomePctSum, incomeAbsSum });
-    }
-  
-    let curRate = baseAnnualRate;
-    let curIncome = baseMonthlyIncome;
-    let paidMonths = 0;
-  
-    const x = [];
-    const y = [];
-    const details = [];
-  
-    for (let year = 1; year <= years; year++) {
-      // 应用该年事件
-      const adj = yearlyAdjust[year - 1];
-      curRate = Math.max(0, curRate + (adj?.rateDeltaSum || 0)); // 年化利率不能为负
-      curIncome = Math.max(1, curIncome * (1 + (adj?.incomePctSum || 0)) + (adj?.incomeAbsSum || 0)); // 月收入下限保护
-  
-      // 计算上一年末的剩余本金（用于“重定价后”重算月供的近似）
-      const remain = year === 1
-        ? principal
-        : remainingPrincipalEqualPI(principal, curRate, years, paidMonths); // 简化：用当前年利率近似上一年末剩余本金
-  
-      const remainYears = Math.max(0, years - (year - 1));
-      const monthlyPay = calcEqualPIMonthly(remain, curRate, remainYears) || 0;
-      const ratio = monthlyPay / curIncome; // 月供占收入比
-  
-      x.push(year);
-      y.push(ratio);
-      details.push({
-        year,
-        monthlyPay,
-        ratio,
-        remainingPrincipal: remain
-      });
-  
-      // 测算步长为年，默认这一年视作支付完 12 期
-      paidMonths += 12;
-    }
-  
-    return { x, y, details, safeLine: 0.3, warnLine: 0.4 };
+    
+    const ratio = monthlyPay / currentIncome
+    
+    details.push({
+      year,
+      monthlyPay,
+      ratio,
+      remainingPrincipal,
+      annualRate: currentRate,
+      monthlyIncome: currentIncome
+    })
+    x.push(year)
+    y.push(ratio)
   }
+  
+  return { x, y, details }
+}
