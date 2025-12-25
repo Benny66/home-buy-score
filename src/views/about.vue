@@ -89,8 +89,10 @@ export default {
 }
 
 .qr-code {
-  width: 300px;
-  height: 400px;
+  max-width: 300px;
+  max-height: 400px;
+  width: auto;
+  height: auto;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -111,8 +113,8 @@ export default {
   }
 
   .qr-code {
-    width: 180px;
-    height: 180px;
+    max-width: 180px;
+    max-height: 180px;
   }
 }
 </style>
