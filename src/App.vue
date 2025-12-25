@@ -10,6 +10,7 @@
       <router-link to="/budget-simulator">动态预算模拟器</router-link>
       <router-link to="/shenzhen-map">深圳地图</router-link>
       <router-link to="/history">历史记录</router-link>
+      <router-link to="/about">关于</router-link>
     </nav>
     <router-view />
   </div>

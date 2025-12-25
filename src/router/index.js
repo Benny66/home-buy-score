@@ -1,11 +1,12 @@
 // src/router/index.js
-import { createRouter, createWebHashHistory } from 'vue-router' 
+import { createRouter, createWebHashHistory } from 'vue-router'  
 import ScoringView from '@/views/scoring.vue'
 import ImprovementView from '@/views/improvement.vue'
 import SecondhandView from '@/views/secondhand.vue'
 import HistoryView from '@/views/history.vue'
 import BudgetSimulatorView from '@/views/budget-simulator.vue'
 import ShenzhenMapView from '@/views/shenzhen-map.vue'
+import AboutView from '@/views/about.vue'
 
 const routes = [
   {
@@ -41,6 +42,11 @@ const routes = [
     path: '/budget-simulator',
     name: 'BudgetSimulator',
     component: BudgetSimulatorView
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: AboutView
   },
 ]
 
