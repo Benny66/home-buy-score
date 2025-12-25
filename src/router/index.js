@@ -5,11 +5,17 @@ import ImprovementView from '@/views/improvement.vue'
 import SecondhandView from '@/views/secondhand.vue'
 import HistoryView from '@/views/history.vue'
 import BudgetSimulatorView from '@/views/budget-simulator.vue'
+import ShenzhenMapView from '@/views/shenzhen-map.vue'
 
 const routes = [
   {
     path: '/',
-    redirect: '/scoring'
+    redirect: '/shenzhen-map'
+  },
+  {
+    path: '/shenzhen-map',
+    name:'ShenzhenMap',
+    component: ShenzhenMapView
   },
   {
     path: '/scoring',
@@ -35,7 +41,7 @@ const routes = [
     path: '/budget-simulator',
     name: 'BudgetSimulator',
     component: BudgetSimulatorView
-  }
+  },
 ]
 
 const router = createRouter({
