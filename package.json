@@ -1,12 +1,16 @@
 {
-  "name": "home-buy-score", 
+  "license": "MIT",
+  "name": "home-buy-score",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "build": "vite build",
     "build:single": "VITE_SINGLE_FILE=true vite build",
-    "build:normal": "VITE_SINGLE_FILE=false vite build"
+    "build:normal": "VITE_SINGLE_FILE=false vite build",
+    "deploy": "yarn build && ./copy_dist_to_benny66.sh",
+    "deploy:single": "yarn build:single && ./copy_dist_to_benny66.sh",
+    "deploy:normal": "yarn build:normal && ./copy_dist_to_benny66.sh"
   },
   "dependencies": {
     "echarts": "^6.0.0",
@@ -17,8 +21,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
+    "terser": "^5.44.1",
     "vite": "^7.2.4",
     "vite-plugin-singlefile": "^2.3.0"
   }
 }
-

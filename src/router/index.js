@@ -11,7 +11,7 @@ import AboutView from '@/views/about.vue'
 const routes = [
   {
     path: '/',
-    redirect: '/shenzhen-map'
+    redirect: '/scoring'
   },
   {
     path: '/shenzhen-map',
