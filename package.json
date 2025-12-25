@@ -1,12 +1,12 @@
 {
-  "name": "home-buy-score",
+  "name": "home-buy-score", 
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "build:single": "VITE_SINGLE_FILE=true vite build",
+    "build:normal": "VITE_SINGLE_FILE=false vite build"
   },
   "dependencies": {
     "echarts": "^6.0.0",
@@ -21,3 +21,4 @@
     "vite-plugin-singlefile": "^2.3.0"
   }
 }
+
