@@ -63,12 +63,12 @@ const presetScenarios = ref([
   {
     name: '收入下降20%',
     description: '收入下降20%',
-    events: [{ year: 5, type: 'income-pct', value: -0.2 }]
+    events: [{ year: 10, type: 'income-pct', value: -0.2 }]
   },
   {
     name: '收入减少3000元',
     description: '月收入减少3000元',
-    events: [{ year: 5, type: 'income-abs', value: -3000 }]
+    events: [{ year: 2, type: 'income-abs', value: -3000 }]
   },
   {
     name: '双重打击',
