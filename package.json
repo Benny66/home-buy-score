@@ -21,7 +21,8 @@
     "vue-router": "4"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitejs/plugin-vue": "^4.6.2",
+    "rollup": "^4.24.0",
     "terser": "^5.44.1",
     "vite": "^4.5.0",
     "vite-plugin-singlefile": "^2.3.0"
