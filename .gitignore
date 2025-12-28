@@ -24,3 +24,4 @@ benny66.github.io
 *.njsproj
 *.sln
 *.sw?
+yarn.lock
