@@ -1,6 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'  
-import { viteSingleFile } from 'vite-plugin-singlefile'
+// import { viteSingleFile } from 'vite-plugin-singlefile'
 import path from 'path'
 
 // https://vite.dev/config/
@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => {
   // 动态配置插件
   const plugins = [vue()]
   if (enableSingleFile) {
-    plugins.push(viteSingleFile())
+    // plugins.push(viteSingleFile())
   }
 
   return {
