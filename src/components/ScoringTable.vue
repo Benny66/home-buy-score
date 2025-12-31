@@ -1,9 +1,18 @@
 <template>
-  <el-table :data="scoreItems" border :class="isSmallScreen ? 'my-table-small' :'my-table'" >  
+  <el-table :data="scoreItems" border :class="isSmallScreen ? 'my-table-small' :'my-table'" >   
     <el-table-column prop="dimension" label="一级维度" :min-width="isSmallScreen ? '50%' : '100px'" />
     <el-table-column prop="weight" label="权重" :min-width="isSmallScreen ? '40%' : '80px'"/>
-    <el-table-column prop="subItem" label="二级子项" :min-width="isSmallScreen ? '70%' : '200px'"/>
-    <el-table-column prop="criteria" label="评分标准（0-10 分）" :min-width="isSmallScreen ? '90%' : '280px'">
+    <el-table-column prop="subItem" label="二级子项" :min-width="isSmallScreen ? '70%' : '200px'">
+      <template #default="scope">
+        <div class="sub-item-content">
+          {{ scope.row.subItem }}
+          <el-tag v-if="isAutoCalculatedItem(scope.row.item) && !isSmallScreen" type="success" size="small" class="ml-4">
+            自动
+          </el-tag>
+        </div>
+      </template>
+    </el-table-column>
+    <el-table-column prop="criteria" label="评分标准（0-10 分）" :min-width="isSmallScreen ? '100%' : '280px'">
       <template #default="scope">
         <div v-if="scope && scope.row" class="criteria-content" :class="{ 'small-screen': isSmallScreen }">
           <div v-for="(item, index) in formatCriteria(scope.row.criteria)"
@@ -14,17 +23,27 @@
         </div>
       </template>
     </el-table-column>
-    <el-table-column label="我的打分" :min-width="isSmallScreen ? '100%' : '80%'">
+    <el-table-column label="我的打分" :min-width="isSmallScreen ? '80%' : '80%'">
       <template #default="scope">
         <template v-if="scope && scope.row">
-          <el-select v-model="scope.row.score" @change="$emit('recalc')" placeholder="请选择分数" filterable
-            allow-create class="full-width" :class="{ 'small-screen': isSmallScreen }">
-            <el-option v-for="option in getScoreOptions(scope.row.criteria)"
-              :key="option.value"
-              :value="option.value"
-              :label="option.label" />
-          </el-select>
-          <span class="weighted" :class="{ 'small-screen': isSmallScreen }">加权得分：<b class="weighted-val">{{ scope.row.weightedScore.toFixed(1) }}</b> 分</span>
+          <div v-if="isAutoCalculatedItem(scope.row.item)" class="auto-score-display">
+            <el-tag type="success" class="score-tag">{{ scope.row.score }}分</el-tag>
+          </div>
+          <div v-else>
+            <el-select v-model="scope.row.score" @change="$emit('recalc')" placeholder="请选择分数" filterable
+              allow-create class="full-width" :class="{ 'small-screen': isSmallScreen }" :size="isSmallScreen ? 'small': 'default'">
+              <el-option v-for="option in getScoreOptions(scope.row.criteria)"
+                :key="option.value"
+                :value="option.value"
+                :label="option.label" />
+            </el-select>
+          </div>
+          <div class="weighted" :class="{ 'small-screen': isSmallScreen }">
+            加权得分：
+          </div>
+          <div class="weighted" :class="{ 'small-screen': isSmallScreen }">
+            <b class="weighted-val">{{ scope.row.weightedScore.toFixed(1) }}</b> 分
+          </div>
         </template>
       </template>
     </el-table-column>
@@ -40,9 +59,15 @@ export default {
   },
   emits: ['recalc'],
   methods: {
+    // 判断是否为自动计算项
+    isAutoCalculatedItem(itemKey) {
+      const autoItems = ['downPaymentPressure', 'monthlyPressure', 'taxReserve']
+      return autoItems.includes(itemKey)
+    },
+
     getScoreOptions(criteria) {
       if (!criteria) return [];
-      
+
       const options = [];
       const scorePattern = /（(\d+)\s*分）/g;
       const parts = criteria.split('、');
@@ -53,18 +78,18 @@ export default {
           const score = parseInt(match[0].match(/\d+/)[0]);
           options.push({
             value: score,
-            label: `${score}分`
+            label: `${score}`
           });
         }
       });
-      
+
       if (!options.some(opt => opt.value === 0)) {
         options.push({
           value: 0,
           label: '0分'
         });
       }
-      
+
       return options.sort((a, b) => b.value - a.value);
     },
 
@@ -92,7 +117,6 @@ export default {
 
 .criteria-item {
   margin-bottom: 4px;
-  font-size: 12px;
 }
 
 .criteria-item:last-child {
@@ -114,29 +138,45 @@ export default {
   font-size: 10px;
 }
 
-/* 表格整体在手机端的字体调整 */
-:deep(.el-table.small-screen .el-table__cell) {
-  font-size: 12px;
+
+
+
+
+
+/* 添加新样式 */
+.sub-item-content {
+  display: flex;
+  align-items: center;
 }
 
-:deep(.el-table.small-screen .el-table__header .cell) {
-  font-size: 11px;
+.ml-4 {
+  margin-left: 4px;
+}
+
+.auto-score-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.score-tag {
   font-weight: bold;
 }
-:deep(.my-table-small .el-select-dropdown__item) {
-  font-size: 11px;
-  height: 30px;
-  line-height: 30px;
-  padding: 0 8px;
+
+.auto-tip {
+  font-size: 12px;
+  color: #67c23a;
+  font-style: italic;
 }
 
-:deep(.my-table-small .el-select-dropdown) {
-  font-size: 11px;
-}
-
-:deep(.my-table-small .el-select .el-input__prefix) {
-  left: 5px;
+/* 手机端适配 */
+.auto-score-display.small-screen {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 </style>
+
+
 
 

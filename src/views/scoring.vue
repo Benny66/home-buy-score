@@ -1,6 +1,6 @@
 <!-- src/views/scoring.vue -->
-<template>   
-  <div class="scoring-container">
+<template>      
+  <div :class="isSmallScreen() ? 'scoring-container-small' : 'scoring-container'" >
     <!-- 说明卡片 -->
     <ScoringCard
       title="深圳刚需购房评分表（粗算）"
@@ -17,6 +17,21 @@
       :collapsed="collapsedCards.basic"
       @toggle="toggleCard('basic')">
       <div class="desc">填写基础参数后，系统将自动推算"预算适配性"的三个子项分数并填入表格。</div>
+
+      <!-- 添加自动计算状态提示 -->
+      <div v-if="hasAutoCalculated" class="auto-calc-notice">
+        <el-alert
+          title="已自动计算预算适配性分数"
+          type="success"
+          :closable="false"
+          show-icon
+          class="mb-16">
+          <template #description>
+            首付压力、月供压力、税费储备比例已根据您的输入自动评分
+          </template>
+        </el-alert>
+      </div>
+
       <el-form :model="formData" :label-width="isSmallScreen() ? '50%': '35%'" class="basic-form">
         <el-row :gutter="20">
           <el-col :xs="24" :sm="12" v-for="field in formFields" :key="field.prop">
@@ -52,10 +67,10 @@
           </el-row>
         </div>
       </el-form>
-      <div class="dim-summary">
+      <div class="dim-summary strong-reminder">
         {{ calcSummary }}
       </div>
-      <div class="dim-summary" style="color:var(--primary);margin-top:8px">
+      <div class="dim-summary strong-reminder" style="color:var(--primary);margin-top:8px">
         {{ safetySuggestion }}
       </div>
     </ScoringCard>
@@ -64,11 +79,16 @@
       title="场景：深圳刚需购房（核心：预算安全 + 基础配套）"
       :collapsed="collapsedCards.scoring"
       @toggle="toggleCard('scoring')">
+      <div class="auto-items-notice" :class="{ 'small-screen': isSmallScreen() }">
+        <el-tag type="success" size="small" class="mr-8">自动计算</el-tag>
+        <span class="muted">前三项（首付压力、月供压力、税费储备）已根据基础表单自动评分</span>
+      </div>
+
       <ScoringTable
         :score-items="scoreItems"
         :is-small-screen="isSmallScreen()"
         @recalc="recalc" />
-      <div class="dim-summary" style="margin-top:10px">
+      <div class="dim-summary strong-reminder" style="margin-top:10px">
         {{ dimensionSummaries }}
       </div>
     </ScoringCard>
@@ -151,6 +171,7 @@ export default {
         scoring: false
       },
       currentRecordId: null, // 添加当前记录ID
+      hasAutoCalculated: false, // 添加自动计算状态标志
     }
   },
   created() {
@@ -271,6 +292,7 @@ export default {
       if (!price || !downRatio || !rate || !years) {
         this.calcSummary = '请至少填写：房屋总价、首付比例、贷款方式/利率、贷款年限。'
         this.safetySuggestion = '安全月供建议：月供不超过家庭月收入的30%'
+        this.hasAutoCalculated = false
         return
       }
 
@@ -346,6 +368,9 @@ export default {
         gjjLoanAmt
       })
       this.recalc()
+
+      // 显示成功提示
+      this.$message.success('预算适配性分数已自动计算完成！')
     },
 
     // 调整贷款金额
@@ -428,8 +453,8 @@ export default {
       })
 
       this.dimensionSummaries = Object.keys(dimTotals).map(dim => {
-        return `${dim}：${dimTotals[dim].toFixed(1)} 分（权重 ${dimWeights[dim]}%，${dimCounts[dim]} 个子项）`
-      }).join('； ') || '维度总分：将自动计算并展示。'
+        return `${dim}：${dimTotals[dim].toFixed(1)} 分（权重 ${dimWeights[dim]}%）`
+      }).join('；\n') || '维度总分：将自动计算并展示。'
 
       this.totalScore = Math.round(total)
       this.updateLevelAndAdvice()
@@ -479,6 +504,7 @@ export default {
       }
       this.calcSummary = '将根据上述参数自动计算：首付金额、贷款金额、月供估算、首付压力、月供压力、税费储备比例等。'
       this.safetySuggestion = '安全月供建议：月供不超过家庭月收入的30%'
+      this.hasAutoCalculated = false
     },
 
     // 保存当前评分
@@ -623,11 +649,15 @@ export default {
 
 <style scoped>
 .scoring-container {
+  max-width: 60%;
+  margin: 24px auto;
+  padding: 24px;
+}
+.scoring-container-small{
   max-width: 100%;
   margin: 24px auto;
-  padding: 0 16px;
+  padding: 0px;
 }
-
 .desc {
   color: var(--el-text-color-secondary);
   font-size: 14px;
@@ -635,11 +665,22 @@ export default {
 }
 
 .dim-summary {
-  color: var(--el-text-color-secondary);
+  color: var(--el-text-color-prim);
   font-size: 13px;
   margin-top: 6px;
+  line-height: 1.8; /* 增加行高使换行更美观 */
+  white-space: pre-line; /* 添加这一行，支持换行显示 */
 }
-
+.dim-summary.strong-reminder {
+  color: #f96960;
+  font-weight: 700;
+  font-size: 14px;
+  background-color: #fff2f0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  border-left: 4px solid #f96960;
+  margin-top: 8px;
+}
 .total-box {
   display: flex;
   align-items: center;
@@ -683,5 +724,33 @@ export default {
   color: var(--el-text-color-secondary);
 }
 
+.auto-calc-notice {
+  margin-bottom: 16px;
+}
+
+.auto-items-notice {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background-color: #f0f9ff;
+  border-radius: 4px;
+  border-left: 4px solid #1890ff;
+}
+.auto-items-notice.small-screen{
+  font-size: 12px;
+  padding: 4px 6px;
+}
+
+.mb-16 {
+  margin-bottom: 16px;
+}
+
+.mr-8 {
+  margin-right: 8px;
+}
+
 </style>
+
+
 
