@@ -1,5 +1,5 @@
 <!-- src/views/scoring.vue -->
-<template>      
+<template>       
   <div :class="isSmallScreen() ? 'scoring-container-small' : 'scoring-container'" >
     <!-- 说明卡片 -->
     <ScoringCard
@@ -100,10 +100,34 @@
         <div class="actions">
           <el-button @click="saveCurrentScore">保存本次评分</el-button>
           <el-button @click="resetScores">重置打分</el-button>
+          <!-- 添加截图按钮 -->
+          <ShareScreenshot
+            :property-name="propertyName"
+            :total-price="formData.price"
+            :monthly-payment="monthlyPaymentForShare"
+            :total-score="totalScore"
+            :level-text="levelText"
+            :level-class="levelClass"
+            :advice-text="adviceText"
+            :dimension-scores="dimensionScoresForShare"
+          />
         </div>
       </div>
       <div class="muted" style="margin-top:8px">
         {{ adviceText }}
+      </div>
+
+      <!-- 添加楼盘名称输入 -->
+      <div class="property-name-input" style="margin-top: 16px;">
+        <el-input
+          v-model="propertyName"
+          placeholder="输入楼盘名称（用于分享截图）"
+          clearable
+          size="small"
+          style="width: 300px;"
+        >
+          <template #prepend>🏠</template>
+        </el-input>
       </div>
     </el-card>
   </div>
@@ -130,12 +154,14 @@ import {
 // 导入组件
 import ScoringCard from '@/components/ScoringCard.vue'
 import ScoringTable from '@/components/ScoringTable.vue'
+import ShareScreenshot from '@/components/ShareScreenshot.vue'
 
 export default {
   name: 'ScoringView',
   components: {
     ScoringCard,
-    ScoringTable
+    ScoringTable,
+    ShareScreenshot  // 添加截图组件
   },
   data() {
     return {
@@ -172,6 +198,41 @@ export default {
       },
       currentRecordId: null, // 添加当前记录ID
       hasAutoCalculated: false, // 添加自动计算状态标志
+      propertyName: '', // 添加楼盘名称字段
+    }
+  },
+  computed: {
+    // 添加计算属性用于截图组件
+    dimensionScoresForShare() {
+      const dimTotals = {}
+      this.scoreItems.forEach(item => {
+        const { dimension, score } = item
+        if (score !== null && !isNaN(score)) {
+          dimTotals[dimension] = (dimTotals[dimension] || 0) + score
+        }
+      })
+
+      return Object.keys(dimTotals).map(dim => ({
+        name: dim,
+        score: Math.round(dimTotals[dim]),
+        percentage: Math.round((dimTotals[dim] / 30) * 100) // 每个维度最多30分
+      }))
+    },
+
+    monthlyPaymentForShare() {
+      const { price, downRatio, rate, years, loanType, commercialLoanAmt, gjjLoanAmt, repaymentType } = this.formData
+
+      if (!price || !downRatio) return 0
+
+      const totalLoanAmt = price * (1 - downRatio / 100)
+
+      if (loanType === 'combine' && commercialLoanAmt !== null && gjjLoanAmt !== null) {
+        const commercialMonthly = this.calcPaymentByType(commercialLoanAmt, 3.1, years, repaymentType)
+        const gjjMonthly = this.calcPaymentByType(gjjLoanAmt, 2.6, years, repaymentType)
+        return (commercialMonthly || 0) + (gjjMonthly || 0)
+      } else {
+        return this.calcPaymentByType(totalLoanAmt, rate, years, repaymentType) || 0
+      }
     }
   },
   created() {
@@ -197,7 +258,7 @@ export default {
 
         const allRecords = JSON.parse(stored)
         const record = allRecords.find(r => r.id === recordId)
-        
+
         if (!record) {
           this.$message.warning('未找到对应的历史记录')
           return false
@@ -218,7 +279,7 @@ export default {
         // 重新计算总分
         this.recalc()
         this.autoFillBudgetScores() // 重新计算预算相关分数
-        
+
         this.currentRecordId = recordId
         this.$message.success('历史记录加载成功')
         return true
@@ -286,7 +347,7 @@ export default {
 
     // 自动填充预算适配性分数
     autoFillBudgetScores() {
-      const { price, downRatio, rate, years, monthlyIncome, availableFunds, 
+      const { price, downRatio, rate, years, monthlyIncome, availableFunds,
         taxReservePct, loanType, commercialLoanAmt, gjjLoanAmt, repaymentType  } = this.formData
 
       if (!price || !downRatio || !rate || !years) {
@@ -409,7 +470,7 @@ export default {
       }
 
       if (Number.isFinite(payload.monthlyPayWan)) {
-        const monthlyDesc = this.formData.repaymentType === 'equalPrincipal' ? 
+        const monthlyDesc = this.formData.repaymentType === 'equalPrincipal' ?
           '首月月供' : '月供'
         parts.push(`${monthlyDesc}≈ ${payload.monthlyPayWan.toFixed(2)} 万/月`)
       }
@@ -421,7 +482,7 @@ export default {
     updateSafetySuggestion(monthlyPayWan, repaymentType) {
       if (monthlyPayWan && monthlyPayWan > 0) {
         const safeIncome = (monthlyPayWan / 0.3).toFixed(2)
-        const repaymentDesc = repaymentType === 'equalPrincipal' ? 
+        const repaymentDesc = repaymentType === 'equalPrincipal' ?
           '（等额本金，首月月供较高）' : '（等额本息，月供固定）'
         this.safetySuggestion = `安全月供建议：月供 ${monthlyPayWan.toFixed(2)} 万${repaymentDesc} → 建议家庭月收入 ≥ ${safeIncome} 万（月供占收入≤30%）`
       } else {
@@ -553,12 +614,12 @@ export default {
       if (score >= 60) return '需优化';
       return '谨慎决策';
     },
-    
+
     // 保存历史记录到localStorage
     saveHistoryRecords(record) {
       try {
         const allRecords = this.getAllHistoryRecords()
-        
+
         if (this.currentRecordId) {
           // 更新现有记录
           const index = allRecords.findIndex(r => r.id === this.currentRecordId)
@@ -571,7 +632,7 @@ export default {
           // 新增记录
           allRecords.unshift(record)
         }
-        
+
         localStorage.setItem('houseScoringHistory', JSON.stringify(allRecords))
       } catch (error) {
         console.error('保存历史记录失败:', error);
@@ -611,6 +672,22 @@ export default {
       if (wasMobile !== this.isMobile) {
         console.log(`设备类型切换: ${this.isMobile ? '移动端' : '桌面端'}`);
         this.$forceUpdate();
+      }
+    },
+    // 添加贷款计算方法的本地版本，避免依赖问题
+    calcPaymentByType(amount, rate, years, type) {
+      if (!amount || !rate || !years) return 0
+
+      const monthlyRate = rate / 100 / 12
+      const months = years * 12
+
+      if (type === 'equalPrincipalInterest') {
+        // 等额本息
+        return amount * monthlyRate * Math.pow(1 + monthlyRate, months) /
+               (Math.pow(1 + monthlyRate, months) - 1)
+      } else {
+        // 等额本金（首月月供）
+        return amount / months + amount * monthlyRate
       }
     },
   },
@@ -750,7 +827,36 @@ export default {
   margin-right: 8px;
 }
 
+.property-name-input {
+  display: flex;
+  justify-content: center;
+}
+
+/* 小屏幕适配 */
+@media (max-width: 768px) {
+  .total-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .property-name-input {
+    justify-content: flex-start;
+  }
+
+  .property-name-input .el-input {
+    width: 100% !important;
+  }
+}
+
 </style>
+
+
 
 
 
