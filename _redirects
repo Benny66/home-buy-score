@@ -1,0 +1,2 @@
+# 代理房地产数据接口
+/api/*  https://fdc.zjj.sz.gov.cn/szfdccommon/homeMap/:splat  200
