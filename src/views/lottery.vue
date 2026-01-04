@@ -89,13 +89,21 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import lotteryData from '@/assets/json/lottery.json'
 
-const rawList = lotteryData?.lottery ?? []
-
-function resolveImg(path) {
-  // 将 "@/assets/..." 转为实际可加载的 URL（适用于 Vite）
-  const resolved = path.replace(/^@/, '/src')
-  return new URL(resolved, import.meta.url).href
+// 预加载并映射 src/assets/img 下所有图片（打包后可用）
+const imageModules = import.meta.glob('../assets/img/*', { eager: true, import: 'default' })
+const IMAGE_MAP = {}
+for (const [p, url] of Object.entries(imageModules)) {
+  const filename = p.split('/').pop()
+  IMAGE_MAP[filename] = url
 }
+
+// 从 JSON 的 "@/assets/img/xxx.jpg" 字符串里提取文件名，并用映射得到真实 URL
+function resolveImg(path) {
+  const filename = path.split('/').pop()
+  return IMAGE_MAP[filename] || '' // 找不到时留空，避免 404
+}
+
+const rawList = lotteryData?.lottery ?? []
 
 const participants = ref(
   rawList.map(item => ({
