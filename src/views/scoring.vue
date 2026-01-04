@@ -100,17 +100,7 @@
         <div class="actions">
           <el-button @click="saveCurrentScore">保存本次评分</el-button>
           <el-button @click="resetScores">重置打分</el-button>
-          <!-- 添加截图按钮 -->
-          <ShareScreenshot
-            :property-name="propertyName"
-            :total-price="formData.price"
-            :monthly-payment="monthlyPaymentForShare"
-            :total-score="totalScore"
-            :level-text="levelText"
-            :level-class="levelClass"
-            :advice-text="adviceText"
-            :dimension-scores="dimensionScoresForShare"
-          />
+         
         </div>
       </div>
       <div class="muted" style="margin-top:8px">
@@ -123,12 +113,24 @@
           v-model="propertyName"
           placeholder="输入楼盘名称（用于分享截图）"
           clearable
-          size="small"
+          :size="isSmallScreen() ? 'small' : 'default'"
           style="width: 300px;"
         >
           <template #prepend>🏠</template>
         </el-input>
+         <!-- 添加截图按钮 -->
+       <ShareScreenshot
+            :property-name="propertyName"
+            :total-price="formData.price"
+            :monthly-payment="monthlyPaymentForShare"
+            :total-score="totalScore"
+            :level-text="levelText"
+            :level-class="levelClass"
+            :advice-text="adviceText"
+            :dimension-scores="dimensionScoresForShare"
+          />
       </div>
+      
     </el-card>
   </div>
 </template>
@@ -829,7 +831,7 @@ export default {
 
 .property-name-input {
   display: flex;
-  justify-content: center;
+  justify-content: start;
 }
 
 /* 小屏幕适配 */

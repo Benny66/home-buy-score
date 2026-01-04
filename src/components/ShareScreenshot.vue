@@ -2,7 +2,7 @@
   <div class="share-screenshot"> 
     <el-button 
       type="primary" 
-      @click="showPreview = true"
+      @click="showPreviewDialog"
       class="screenshot-btn"
     >
       <el-icon><Camera /></el-icon>
@@ -165,6 +165,17 @@ export default {
     }
   },
   methods: {
+    showPreviewDialog() {
+      if (this.propertyName === '') {
+        this.$message.warning('请先填写楼盘名称后截图');
+        return;
+      }
+      if (this.totalScore === 0) {
+        this.$message.warning('请先完成评分再截图');
+        return;
+      }
+      this.showPreview = true
+    },
     async generateScreenshot() {
       if (this.generating) return
       
@@ -460,8 +471,8 @@ export default {
   border-radius: 6px;
 }
 .qrcode-container {
-  width: 200px;
-  height: 200px;
+  width: 80px;
+  height: 80px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -469,11 +480,14 @@ export default {
   border-radius: 6px;
   overflow: hidden;
   background: #f8f9fa;
+  padding: 5px;
 }
 
 .qrcode-image {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
 }
 .preview-actions {
