@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'     
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
 import {
   calcEqualPIMonthly,
@@ -20,14 +20,25 @@ function handleFormChange(normalizedData) {
   years.value = normalizedData.years
   monthlyIncome.value = normalizedData.monthlyIncome / 10000
   repaymentType.value = normalizedData.repaymentType
+  loanType.value = normalizedData.loanType
+  commercialRate.value = normalizedData.commercialRate
+  providentRate.value = normalizedData.providentRate
+  commercialAmount.value = normalizedData.commercialAmount / 10000
+  providentAmount.value = normalizedData.providentAmount / 10000
 }
 
 // 原有的响应式数据
 const principal = ref(100)
-const annualRate = ref(4.2)
+const annualRate = ref(3.1) // 默认商业贷款利率
+
 const years = ref(30)
 const monthlyIncome = ref(2.5)
 const repaymentType = ref('equalPrincipalInterest')
+const loanType = ref('commercial')
+const commercialRate = ref(3.1)
+const providentRate = ref(2.6)
+const commercialAmount = ref(0)
+const providentAmount = ref(0)
 
 // 错误/边界保护
 const normalizedPrincipal = computed(() => Math.max(0, (Number(principal.value) || 0)) * 10000)
@@ -35,6 +46,23 @@ const normalizedIncome = computed(() => Math.max(1, (Number(monthlyIncome.value)
 const normalizedRate = computed(() => Math.max(0, Number(annualRate.value) || 0))
 const normalizedYears = computed(() => Math.min(30, Math.max(1, Number(years.value) || 1)))
 
+// 贷款类型显示文本
+const loanTypeText = computed(() => {
+  const types = {
+    commercial: '商业贷款',
+    provident: '公积金贷款',
+    combined: '组合贷款'
+  }
+  return types[loanType.value] || '商业贷款'
+})
+
+// 利率显示文本
+const rateDisplayText = computed(() => {
+  if (loanType.value === 'combined') {
+    return `商业${commercialRate.value}% + 公积金${providentRate.value}%`
+  }
+  return `${annualRate.value}%`
+})
 // 风险事件列表
 const events = ref([])
 
@@ -395,7 +423,7 @@ function renderChart() {
 
   const option = {
     title: {
-      text: `月供压力趋势分析 - ${repaymentType.value === 'equalPrincipal' ? '等额本金' : '等额本息'}`,
+      text: `月供压力趋势分析 - ${loanTypeText.value} - ${repaymentType.value === 'equalPrincipal' ? '等额本金' : '等额本息'}`,
       left: 'center',
       textStyle: {
         fontSize: 16,
@@ -407,11 +435,11 @@ function renderChart() {
       formatter: function (params) {
         const yearData = params.find(param => param.seriesName === '当前场景')
         if (!yearData) return ''
-        
+
         const year = yearData.value[0]
         const scenarioDetail = scenario.details.find(d => d.year === year)
         const baselineDetail = baseline.details.find(d => d.year === year)
-        
+
         if (!scenarioDetail) return ''
 
         let result = `<div style="font-weight: bold; margin-bottom: 8px;">第 ${year} 年</div>`
@@ -481,7 +509,7 @@ function renderChart() {
         min: 0,
         max: maxMonthlyPay,
         axisLabel: {
-          formatter: function(value) {
+          formatter: function (value) {
             if (value >= 10000) {
               return (value / 10000).toFixed(1) + '万'
             }
@@ -631,19 +659,26 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
 </script>
 
 <template>
-  <div class="budget-page">
+  <div :class="isSmallScreen ? 'budget-page-small' : 'budget-page'">
     <div class="layout-container">
       <!-- 左侧：表单区域 -->
       <div class="form-section">
-        <BudgetSimulatorForm
-          :is-small-screen="isSmallScreen"
-          @form-change="handleFormChange"
-        />
+        <BudgetSimulatorForm :is-small-screen="isSmallScreen" @form-change="handleFormChange" />
 
         <!-- 优化后的风险事件配置 -->
         <section class="events">
           <h3>风险事件配置</h3>
-
+          <!-- 贷款信息摘要 -->
+          <div class="loan-summary">
+            <div class="loan-info">
+              <strong>当前贷款：</strong>
+              <span>{{ loanTypeText }}</span>
+              <span class="rate-info">（{{ rateDisplayText }}）</span>
+            </div>
+            <div v-if="loanType === 'combined'" class="combined-detail">
+              商业：{{ commercialAmount }}万元 | 公积金：{{ providentAmount }}万元
+            </div>
+          </div>
           <!-- 多场景对比控制 -->
           <div class="scenario-controls" v-if="selectedScenarios.size >= 2">
             <button class="compare-btn" @click="compareSelectedScenarios">
@@ -655,30 +690,18 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
           <div class="preset-scenarios">
             <h4>常用场景</h4>
             <div class="scenario-list">
-              <div
-                v-for="(scenario, index) in presetScenarios"
-                :key="index"
-                class="scenario-item"
+              <div v-for="(scenario, index) in presetScenarios" :key="index" class="scenario-item"
                 :class="{ selected: selectedScenarios.has(`${index}-${scenario.name}`) }"
-                @click="addPresetScenario(scenario)"
-                @mouseenter="showScenarioPreview(scenario, $event)"
-                @mouseleave="hideScenarioPreview"
-              >
+                @click="addPresetScenario(scenario)" @mouseenter="showScenarioPreview(scenario, $event)"
+                @mouseleave="hideScenarioPreview">
                 <div class="scenario-header">
-                  <input
-                    type="checkbox"
-                    :checked="selectedScenarios.has(`${index}-${scenario.name}`)"
-                    @click.stop="toggleScenarioSelection(scenario, index)"
-                    class="scenario-checkbox"
-                  />
+                  <input type="checkbox" :checked="selectedScenarios.has(`${index}-${scenario.name}`)"
+                    @click.stop="toggleScenarioSelection(scenario, index)" class="scenario-checkbox" />
                   <div class="scenario-name">{{ scenario.name }}</div>
-                  <span
-                    class="risk-tag"
-                    :style="{
-                      backgroundColor: getRiskLabel(calculateScenarioImpact(scenario).riskLevel).bgColor,
+                  <span class="risk-tag" :style="{
+                    backgroundColor: getRiskLabel(calculateScenarioImpact(scenario).riskLevel).bgColor,
                       color: getRiskLabel(calculateScenarioImpact(scenario).riskLevel).color
-                    }"
-                  >
+                    }">
                     {{ getRiskLabel(calculateScenarioImpact(scenario).riskLevel).text }}
                   </span>
                 </div>
@@ -687,7 +710,8 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
                   <div class="impact-title">场景影响</div>
                   <div class="impact-details">
                     <span>月供占比 → {{ calculateScenarioImpact(scenario).avgRatio }}%</span>
-                    <span>月供变化 → {{ calculateScenarioImpact(scenario).monthlyPayChange > 0 ? '+' : '' }}{{ calculateScenarioImpact(scenario).monthlyPayChange }}元/月</span>
+                    <span>月供变化 → {{ calculateScenarioImpact(scenario).monthlyPayChange > 0 ? '+' : '' }}{{
+                      calculateScenarioImpact(scenario).monthlyPayChange }}元/月</span>
                   </div>
                 </div>
               </div>
@@ -698,12 +722,8 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
           <div class="custom-scenarios" v-if="customScenarios.length > 0">
             <h4>我的场景</h4>
             <div class="scenario-list">
-              <div
-                v-for="(scenario, index) in customScenarios"
-                :key="'custom-' + index"
-                class="scenario-item custom"
-                @click="addPresetScenario(scenario)"
-              >
+              <div v-for="(scenario, index) in customScenarios" :key="'custom-' + index" class="scenario-item custom"
+                @click="addPresetScenario(scenario)">
                 <div class="scenario-header">
                   <div class="scenario-name">{{ scenario.name }}</div>
                   <button class="delete-custom-btn" @click.stop="removeCustomScenario(index)">
@@ -722,11 +742,7 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
               <div class="form-group">
                 <label>发生年份</label>
                 <select v-model="selectedYear">
-                  <option
-                    v-for="year in yearOptions"
-                    :key="year"
-                    :value="year"
-                  >
+                  <option v-for="year in yearOptions" :key="year" :value="year">
                     第 {{ year }} 年
                   </option>
                 </select>
@@ -743,26 +759,21 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
 
               <div class="form-group">
                 <label>变化值</label>
-                <input
-                  type="number"
-                  v-model.number="selectedEventValue"
-                  :step="selectedEventType === 'rate' ? 0.1 : selectedEventType === 'income-pct' ? 0.01 : 100"
-                />
+                <input type="number" v-model.number="selectedEventValue"
+                  :step="selectedEventType === 'rate' ? 0.1 : selectedEventType === 'income-pct' ? 0.01 : 100" />
                 <span class="value-hint">
-                  {{ selectedEventType === 'rate' ? '个百分点' : selectedEventType === 'income-pct' ? '比例（如-0.1表示-10%）' : '元' }}
+                  {{ selectedEventType === 'rate' ? '个百分点' : selectedEventType === 'income-pct' ? '比例（如-0.1表示-10%）' :
+                  '元' }}
                 </span>
                 <div v-if="selectedEventValue !== 0" class="impact-preview">
-                  预计月供占比变为 {{ calculateScenarioImpact({ events: [{ year: selectedYear, type: selectedEventType, value: selectedEventValue }] }).avgRatio }}%
+                  预计月供占比变为 {{ calculateScenarioImpact({ events: [{ year: selectedYear, type: selectedEventType, value:
+                  selectedEventValue }] }).avgRatio }}%
                 </div>
               </div>
 
               <div class="form-actions">
                 <button class="add-btn" @click="addEvent">添加事件</button>
-                <button
-                  class="save-scenario-btn"
-                  @click="showSaveDialog = true"
-                  :disabled="events.length === 0"
-                >
+                <button class="save-scenario-btn" @click="showSaveDialog = true" :disabled="events.length === 0">
                   保存为我的场景
                 </button>
               </div>
@@ -790,16 +801,16 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
                   <span class="event-type">
                     {{
                       e.type === 'rate' ? 'LPR浮动' :
-                      e.type === 'income-pct' ? '收入比例变化' :
-                      '收入绝对变化'
+                    e.type === 'income-pct' ? '收入比例变化' :
+                    '收入绝对变化'
                     }}
                   </span>
                   <span class="event-value" :class="{ negative: e.value < 0 }">
                     {{ e.value > 0 ? '+' : '' }}{{ e.value }}
                     {{
                       e.type === 'rate' ? '个百分点' :
-                      e.type === 'income-pct' ? '' :
-                      '元'
+                    e.type === 'income-pct' ? '' :
+                    '元'
                     }}
                   </span>
                 </div>
@@ -816,13 +827,7 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
         <div class="chart-controls">
           <div class="warning-threshold-control">
             <label>预警线设置：</label>
-            <input
-              type="number"
-              v-model.number="customWarningThreshold"
-              min="10"
-              max="60"
-              class="threshold-input"
-            />
+            <input type="number" v-model.number="customWarningThreshold" min="10" max="60" class="threshold-input" />
             <span>%</span>
           </div>
         </div>
@@ -844,22 +849,18 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
     </div>
 
     <!-- 场景预览弹窗 -->
-    <div
-      v-if="showPreview && previewScenario"
-      class="scenario-preview"
-      :style="{
-        left: previewPosition.x + 'px',
-        top: previewPosition.y + 'px'
-      }"
-      @mouseenter="showPreview = true"
-      @mouseleave="hideScenarioPreview"
-    >
+    <div v-if="showPreview && previewScenario" class="scenario-preview" :style="{
+      left: previewPosition.x + 'px',
+      top: previewPosition.y + 'px'
+    }" @mouseenter="showPreview = true" @mouseleave="hideScenarioPreview">
       <div class="preview-header">
         <h4>场景预览：{{ previewScenario.name }}</h4>
       </div>
       <div class="preview-content">
         <div class="preview-impact">
-          <div>月供金额：{{ calculateScenarioImpact(previewScenario).monthlyPayChange > 0 ? '+' : '' }}{{ Math.round(calcEqualPIMonthly(normalizedPrincipal.value, normalizedRate.value, normalizedYears.value) + calculateScenarioImpact(previewScenario).monthlyPayChange).toLocaleString() }} 元/月</div>
+          <div>月供金额：{{ calculateScenarioImpact(previewScenario).monthlyPayChange > 0 ? '+' : '' }}{{
+            Math.round(calcEqualPIMonthly(normalizedPrincipal.value, normalizedRate.value, normalizedYears.value) +
+            calculateScenarioImpact(previewScenario).monthlyPayChange).toLocaleString() }} 元/月</div>
           <div>月供占比：{{ calculateScenarioImpact(previewScenario).avgRatio }}%</div>
         </div>
         <div class="preview-actions">
@@ -873,11 +874,7 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
     <div v-if="showSaveDialog" class="save-dialog-overlay" @click="showSaveDialog = false">
       <div class="save-dialog" @click.stop>
         <h4>保存自定义场景</h4>
-        <input
-          v-model="newScenarioName"
-          placeholder="输入场景名称"
-          class="scenario-name-input"
-        />
+        <input v-model="newScenarioName" placeholder="输入场景名称" class="scenario-name-input" />
         <div class="dialog-actions">
           <button class="confirm-btn" @click="saveCustomScenario" :disabled="!newScenarioName.trim()">确认</button>
           <button class="cancel-btn" @click="showSaveDialog = false">取消</button>
@@ -889,10 +886,14 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
 
 <style scoped>
 .budget-page {
-  max-width: 1600px;
+  margin: 24px auto;
+  max-width: 80%;
   padding: 16px;
 }
-
+.budget-page-small {
+  max-width: 400px;
+  padding: 16px;
+}
 .layout-container {
   display: flex;
   gap: 24px;
@@ -905,6 +906,8 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
 }
 
 .chart-section {
+  width: 100%;
+
   flex: 1;
   min-width: 0;
   position: sticky;
@@ -925,7 +928,7 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
 
 .chart-box {
   width: 100%;
-  height: 500px;
+  height: 800px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background: white;
@@ -1000,7 +1003,7 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
 .scenario-checkbox {
   margin: 0;
 }
-  
+
 .scenario-name {
   font-weight: bold;
   color: #1890ff;
@@ -1428,12 +1431,29 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
   margin-right: 8px;
 }
 
-.safe { background-color: #91cc75; }
-.warn { background-color: #fac858; }
-.exceed { background-color: rgba(255, 0, 0, 0.3); }
-.critical { background-color: #ff0000; }
-.current-pay { background-color: #ff7f50; }
-.baseline-pay { background-color: #73c0de; }
+.safe {
+  background-color: #91cc75;
+}
+
+.warn {
+  background-color: #fac858;
+}
+
+.exceed {
+  background-color: rgba(255, 0, 0, 0.3);
+}
+
+.critical {
+  background-color: #ff0000;
+}
+
+.current-pay {
+  background-color: #ff7f50;
+}
+
+.baseline-pay {
+  background-color: #73c0de;
+}
 
 /* 响应式设计 */
 @media (max-width: 1024px) {
@@ -1453,7 +1473,7 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
   }
 
   .chart-box {
-    height: 400px;
+    height: 800px;
   }
 
   .scenario-list {
@@ -1489,7 +1509,8 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
     flex-direction: column;
   }
 
-  .add-btn, .save-scenario-btn {
+  .add-btn,
+  .save-scenario-btn {
     margin-top: 8px;
     height: 44px;
     width: 100%;
@@ -1534,18 +1555,20 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
 }
 
 @media (max-width: 480px) {
+
   .form-group select,
   .form-group input {
     height: 44px;
   }
 
-  .add-btn, .save-scenario-btn {
+  .add-btn,
+  .save-scenario-btn {
     height: 48px;
     font-size: 16px;
   }
 
   .chart-box {
-    height: 300px;
+    height: 350px;
   }
 
   .scenario-impact .impact-details {
@@ -1571,6 +1594,7 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
     opacity: 0;
     transform: translate(-50%, 0);
   }
+
   to {
     opacity: 1;
     transform: translate(-50%, 10px);
@@ -1582,9 +1606,9 @@ watch([principal, annualRate, years, monthlyIncome, normalizedEvents, repaymentT
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
-    opacity: 1;
-    transform: scale(1);
+    opacity: 1;    transform: scale(1);
   }
 }
 
