@@ -38,7 +38,8 @@ export default defineConfig(({ mode }) => {
         output: {
           // 多文件模式的代码分割策略
           manualChunks: {
-            vendor: ['vue', 'vue-router', 'element-plus'], // 第三方库
+            vendor: ['vue', 'vue-router'], // 第三方库
+            element: ['element-plus'], // 组件库单独分包
             echarts: ['echarts', 'vue-echarts'] // 图表库单独分包
           }
         }
