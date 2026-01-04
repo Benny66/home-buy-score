@@ -1,5 +1,5 @@
 <!-- src/views/policy.vue -->
-<template>  
+<template>   
   <div class="policy-page">
     <h1>2023-2025年深圳房产政策时间轴</h1>
     <!-- 筛选控件 -->

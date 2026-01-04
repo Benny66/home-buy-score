@@ -46,7 +46,6 @@ const getVisibleLinks = () => {
   const allLinks = [
     { to: '/evaluation', text: '购房评估', priority: 1, type: 'parent' },
     { to: '/real-estate', text: '房产信息', priority: 1, type: 'parent' },
-    { to: '/budget-simulator', text: '预算模拟器', priority: 2 },
     { to: '/shenzhen-map', text: '深圳地图', priority: 2 },
     { to: '/history', text: '历史记录', priority: 3 },
     { to: '/about', text: '关于', priority: 3 }
@@ -78,7 +77,8 @@ const getChildLinks = (parentPath) => {
       return [
         { to: '/evaluation/scoring', text: '刚需购房评估' },
         { to: '/evaluation/improvement', text: '改善型购房评估' },
-        { to: '/evaluation/secondhand', text: '二手房购房评估' }
+        { to: '/evaluation/secondhand', text: '二手房购房评估' },
+        { to: '/evaluation/budget-simulator', text: '购房预算模拟' },
       ]
     case '/real-estate':
       return [

@@ -20,11 +20,6 @@ const routes = [
     component: ShenzhenMapView
   },
   {
-    path: '/budget-simulator',
-    name: 'BudgetSimulator',
-    component: BudgetSimulatorView
-  },
-  {
     path: '/history',
     name: 'History',
     component: HistoryView
@@ -68,6 +63,11 @@ const routes = [
         path: 'secondhand',
         name: 'Secondhand',
         component: SecondhandView
+      },
+      {
+        path: 'budget-simulator',
+        name: 'BudgetSimulator',
+        component: BudgetSimulatorView
       }
     ]
   }
