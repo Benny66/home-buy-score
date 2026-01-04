@@ -7,7 +7,6 @@ import HistoryView from '@/views/history.vue'
 import BudgetSimulatorView from '@/views/budget-simulator.vue'
 import ShenzhenMapView from '@/views/shenzhen-map.vue'
 import AboutView from '@/views/about.vue'
-import LotteryView from '@/views/lottery.vue'
 
 const routes = [
   {
@@ -43,11 +42,6 @@ const routes = [
     path: '/budget-simulator',
     name: 'BudgetSimulator',
     component: BudgetSimulatorView
-  },
-  {
-    path: '/lottery',
-    name: 'Lottery',
-    component: LotteryView
   },
   {
     path: '/about',

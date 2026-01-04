@@ -47,7 +47,6 @@ const getVisibleLinks = () => {
     { to: '/scoring', text: '刚需购房评估', priority: 1 },
     { to: '/improvement', text: '改善型购房评估', priority: 1 },
     { to: '/secondhand', text: '二手房购房评估', priority: 1 },
-    { to: '/lottery', text: '8人抽奖', priority: 2 }, // 新增抽奖链接
     { to: '/budget-simulator', text: '预算模拟器', priority: 2 },
     { to: '/shenzhen-map', text: '深圳地图', priority: 2 },
     { to: '/history', text: '历史记录', priority: 3 },
