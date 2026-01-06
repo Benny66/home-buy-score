@@ -1,0 +1,762 @@
+{
+  "title": "2026年潜在计划入市项目统计",
+  "columns": ["administrative_district", "area", "building_name", "property_type", "reference_house_type", "remarks", "coordinates"],
+  "data": [
+    {
+      "administrative_district": "福田",
+      "area": "安托山",
+      "building_name": "卓越柏奕府",
+      "property_type": "住宅、公寓、办公、酒店、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.032802,22.547619"
+    },
+    {
+      "administrative_district": "福田",
+      "area": "梅林",
+      "building_name": "中海B03-009",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.042673,22.560248"
+    },
+    {
+      "administrative_district": "福田",
+      "area": "皇岗",
+      "building_name": "中洲湾迎玺",
+      "property_type": "住宅",
+      "reference_house_type": "92-173㎡3-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.056891,22.534275"
+    },
+    {
+      "administrative_district": "福田",
+      "area": "上沙",
+      "building_name": "新世界香蜜四季园",
+      "property_type": "住宅、公寓、商业",
+      "reference_house_type": "105-279㎡3-6房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.049628,22.528967"
+    },
+    {
+      "administrative_district": "福田",
+      "area": "上下沙",
+      "building_name": "福田文化四馆",
+      "property_type": "住宅",
+      "reference_house_type": "104-171㎡2-3房住宅、83-366㎡公寓",
+      "remarks": "建设中",
+      "coordinates": "114.051835,22.527142"
+    },
+    {
+      "administrative_district": "福田",
+      "area": "上梅林",
+      "building_name": "京基慧悦府",
+      "property_type": "住宅、公寓、办公、酒店、商业",
+      "reference_house_type": "70-235㎡2-5房住宅、34-44㎡公寓",
+      "remarks": "样板房开放中",
+      "coordinates": "114.045917,22.557863"
+    },
+    {
+      "administrative_district": "福田",
+      "area": "华强北",
+      "building_name": "绿景白石洲",
+      "property_type": "公寓、办公、产业研发、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.023786,22.530891"
+    },
+    {
+      "administrative_district": "福田",
+      "area": "华城",
+      "building_name": "锦绣公园壹号",
+      "property_type": "住宅、公寓、办公、商业",
+      "reference_house_type": "108-190㎡3-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.029645,22.541278"
+    },
+    {
+      "administrative_district": "福田",
+      "area": "红树湾",
+      "building_name": "中洲C207-0068",
+      "property_type": "公寓",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.998724,22.516357"
+    },
+    {
+      "administrative_district": "福田",
+      "area": "红树湾",
+      "building_name": "GC深圳超总",
+      "property_type": "住宅、办公、商业",
+      "reference_house_type": "303-508㎡公寓",
+      "remarks": "样板房开放中",
+      "coordinates": "113.996582,22.514893"
+    },
+    {
+      "administrative_district": "福田",
+      "area": "科技园",
+      "building_name": "莱英花园旧改",
+      "property_type": "住宅、公寓、办公、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.012876,22.538945"
+    },
+    {
+      "administrative_district": "福田",
+      "area": "科技园",
+      "building_name": "昭明馆",
+      "property_type": "住宅、办公、酒店、商业",
+      "reference_house_type": "104-142㎡3-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.015923,22.540167"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "南头",
+      "building_name": "同乐公馆",
+      "property_type": "住宅",
+      "reference_house_type": "91-123㎡3-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.938765,22.532841"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "南头",
+      "building_name": "诚泰海苑",
+      "property_type": "住宅、商业",
+      "reference_house_type": "114-133㎡4-5房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.942817,22.536924"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "南头",
+      "building_name": "泰莱臻院",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.945628,22.539175"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "前海",
+      "building_name": "前海润峯二期",
+      "property_type": "住宅",
+      "reference_house_type": "89-190㎡住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.896723,22.528645"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "前海",
+      "building_name": "万科臻湾汇润峯",
+      "property_type": "公寓",
+      "reference_house_type": "161-230㎡公寓",
+      "remarks": "建设中",
+      "coordinates": "113.892845,22.526178"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "前海",
+      "building_name": "招商前海湾",
+      "property_type": "住宅",
+      "reference_house_type": "94-133㎡3-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.889657,22.523892"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "前海",
+      "building_name": "鸿尚润府",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.891726,22.525483"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "前海",
+      "building_name": "深南前海科技园",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.887563,22.521947"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "前海",
+      "building_name": "万润家园",
+      "property_type": "公寓",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.893625,22.527814"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "前海",
+      "building_name": "海湾润公馆",
+      "property_type": "住宅、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.885723,22.520689"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "前海",
+      "building_name": "深圳湾公馆",
+      "property_type": "住宅、公寓、商业",
+      "reference_house_type": "209-1150㎡住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.912864,22.518735"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "南山中心区",
+      "building_name": "金地珠城大厦",
+      "property_type": "公寓",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.928756,22.524917"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "南山中心区",
+      "building_name": "金地勤诚达二期",
+      "property_type": "住宅",
+      "reference_house_type": "71-118㎡住宅",
+      "remarks": "现房",
+      "coordinates": "113.931627,22.526845"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "深圳湾",
+      "building_name": "中信城开悦府",
+      "property_type": "住宅、办公、酒店、商业",
+      "reference_house_type": "210-510㎡住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.962845,22.508763"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "蛇口",
+      "building_name": "招商湾玺",
+      "property_type": "住宅、商业",
+      "reference_house_type": "197-237㎡4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.918765,22.496382"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "蛇口",
+      "building_name": "半岛城邦五期",
+      "property_type": "住宅、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.926874,22.491573"
+    },
+    {
+      "administrative_district": "南山",
+      "area": "蛇口",
+      "building_name": "招商四海臻邸",
+      "property_type": "住宅、酒店",
+      "reference_house_type": "67-125㎡2-4房住宅",
+      "remarks": "建设中",
+      "coordinates": "113.915628,22.493765"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "西乡",
+      "building_name": "京基光和山悦",
+      "property_type": "住宅、公寓、办公、酒店、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.842765,22.568914"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "西乡",
+      "building_name": "琪霖光明旧改项目",
+      "property_type": "住宅、公寓、办公、酒店、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.839627,22.565841"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "西乡",
+      "building_name": "都市茗荟花园二期",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.851723,22.572685"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "宝安中心区",
+      "building_name": "新锦安海纳",
+      "property_type": "住宅、产业用房、商业",
+      "reference_house_type": "86-143㎡3-5房住宅",
+      "remarks": "现房",
+      "coordinates": "113.872654,22.548917"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "宝安中心区",
+      "building_name": "壹湾臻园",
+      "property_type": "住宅",
+      "reference_house_type": "47-142㎡平层及复式住宅",
+      "remarks": "现房",
+      "coordinates": "113.876825,22.551678"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "宝安中心区",
+      "building_name": "泰华梧桐林居",
+      "property_type": "住宅",
+      "reference_house_type": "107-154㎡3-4房住宅",
+      "remarks": "现房",
+      "coordinates": "113.879657,22.553842"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "宝安中心区",
+      "building_name": "中洲滨海湾府",
+      "property_type": "住宅",
+      "reference_house_type": "108-173㎡2-4房住宅",
+      "remarks": "现房",
+      "coordinates": "113.882763,22.556194"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "宝安中心区",
+      "building_name": "鸿荣源A02-0108",
+      "property_type": "住宅、商业",
+      "reference_house_type": "140-323㎡3-4房住宅",
+      "remarks": "建设中",
+      "coordinates": "113.885624,22.558765"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "宝安中心区",
+      "building_name": "招商雍境湾",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.888756,22.560891"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "碧海",
+      "building_name": "京基御景珑庭",
+      "property_type": "住宅、公寓、办公、酒店",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.858763,22.562845"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "碧海",
+      "building_name": "特建发臻庭",
+      "property_type": "住宅",
+      "reference_house_type": "105-188㎡4房住宅",
+      "remarks": "建设中",
+      "coordinates": "113.861924,22.565763"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "翻身",
+      "building_name": "深湾润海花园",
+      "property_type": "住宅、公寓、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.868756,22.559178"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "翻身",
+      "building_name": "怀德世纪城邦花园",
+      "property_type": "住宅、商业",
+      "reference_house_type": "99-200㎡3-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.871627,22.561845"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "福永",
+      "building_name": "鸿品云山谷",
+      "property_type": "住宅、商业",
+      "reference_house_type": "70-126㎡2-3房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.826754,22.601923"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "石岩",
+      "building_name": "名品佳境府",
+      "property_type": "住宅、商业",
+      "reference_house_type": "82-123㎡3-4房住宅",
+      "remarks": "建设中",
+      "coordinates": "113.902865,22.638741"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "石岩",
+      "building_name": "泰禾深圳院子",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.905627,22.641875"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "沙井",
+      "building_name": "臻湾悦和鸣",
+      "property_type": "住宅、商业",
+      "reference_house_type": "89-130㎡3-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.802765,22.648917"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "沙井",
+      "building_name": "万丰海岸城玺府",
+      "property_type": "住宅",
+      "reference_house_type": "89-120㎡3-6房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.806824,22.651763"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "沙井",
+      "building_name": "鸿荣源珈誉府",
+      "property_type": "住宅",
+      "reference_house_type": "65-206㎡住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.810956,22.654892"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "沙井",
+      "building_name": "景丰灏颐郡",
+      "property_type": "住宅、办公、产业用房、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.813725,22.657684"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "沙井",
+      "building_name": "永丰盛大厦",
+      "property_type": "公寓、办公",
+      "reference_house_type": "待定",
+      "remarks": "现房",
+      "coordinates": "113.816874,22.660175"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "沙井",
+      "building_name": "新桥风凰花园",
+      "property_type": "住宅、公寓、商业",
+      "reference_house_type": "64-113㎡2-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.820625,22.662841"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "松岗",
+      "building_name": "新世界松风明月花园",
+      "property_type": "住宅",
+      "reference_house_type": "73-123㎡2-4房住宅",
+      "remarks": "现房",
+      "coordinates": "113.768756,22.681923"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "松岗",
+      "building_name": "特建臻颐府",
+      "property_type": "住宅",
+      "reference_house_type": "83-93㎡3-4房住宅",
+      "remarks": "建设中",
+      "coordinates": "113.771627,22.684765"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "松岗",
+      "building_name": "深铁璟城二期",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.774875,22.687891"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "松岗",
+      "building_name": "滨海泰云府",
+      "property_type": "住宅、办公、酒店、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.777624,22.690178"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "西乡",
+      "building_name": "卓越秦奕府",
+      "property_type": "住宅",
+      "reference_house_type": "84-110㎡3-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.848765,22.571924"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "西乡",
+      "building_name": "凤凰颐家园",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "113.851627,22.574875"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "西乡",
+      "building_name": "景顺意家园",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "现房",
+      "coordinates": "113.854756,22.577682"
+    },
+    {
+      "administrative_district": "宝安",
+      "area": "西乡",
+      "building_name": "华发松山府",
+      "property_type": "住宅、办公、商业",
+      "reference_house_type": "93-162㎡平层及复式住宅",
+      "remarks": "建设中",
+      "coordinates": "113.857824,22.580194"
+    },
+    {
+      "administrative_district": "罗湖",
+      "area": "新安",
+      "building_name": "凯德名邸",
+      "property_type": "住宅、公寓、办公、酒店、商业",
+      "reference_house_type": "88-116㎡3-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.112765,22.548917"
+    },
+    {
+      "administrative_district": "罗湖",
+      "area": "新安",
+      "building_name": "勤诚达云邸",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.115627,22.551763"
+    },
+    {
+      "administrative_district": "罗湖",
+      "area": "布心",
+      "building_name": "京基信义·荔景御府",
+      "property_type": "公寓、办公",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.132876,22.561924"
+    },
+    {
+      "administrative_district": "罗湖",
+      "area": "水贝",
+      "building_name": "天筑",
+      "property_type": "住宅、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.128756,22.557841"
+    },
+    {
+      "administrative_district": "罗湖",
+      "area": "人民南",
+      "building_name": "银湖府",
+      "property_type": "住宅、公寓",
+      "reference_house_type": "待定",
+      "remarks": "现房",
+      "coordinates": "114.102654,22.541768"
+    },
+    {
+      "administrative_district": "龙华",
+      "area": "民治",
+      "building_name": "御锦城",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.068765,22.601923"
+    },
+    {
+      "administrative_district": "龙华",
+      "area": "鹭湖",
+      "building_name": "御龙华府二期",
+      "property_type": "住宅、公寓、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.082756,22.628741"
+    },
+    {
+      "administrative_district": "龙华",
+      "area": "大浪",
+      "building_name": "御龙玺",
+      "property_type": "住宅、办公、产业研发、商业",
+      "reference_house_type": "80-145㎡2-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.048765,22.631924"
+    },
+    {
+      "administrative_district": "龙华",
+      "area": "大浪",
+      "building_name": "深铁珑境二期",
+      "property_type": "住宅",
+      "reference_house_type": "85-110㎡3-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.051627,22.634765"
+    },
+    {
+      "administrative_district": "龙华",
+      "area": "大浪",
+      "building_name": "鸿荣源智谷项目",
+      "property_type": "住宅、办公、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.054875,22.637891"
+    },
+    {
+      "administrative_district": "龙华",
+      "area": "大浪",
+      "building_name": "滨江睿山颂",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.057624,22.640178"
+    },
+    {
+      "administrative_district": "龙岗",
+      "area": "坂田",
+      "building_name": "信义御山珑花园",
+      "property_type": "住宅",
+      "reference_house_type": "93-259㎡3-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.092765,22.618917"
+    },
+    {
+      "administrative_district": "龙岗",
+      "area": "坂田",
+      "building_name": "天安云谷",
+      "property_type": "住宅",
+      "reference_house_type": "118-999㎡住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.098756,22.621763"
+    },
+    {
+      "administrative_district": "龙岗",
+      "area": "布吉",
+      "building_name": "特发百合朗庭",
+      "property_type": "住宅、公寓、酒店、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.128765,22.581924"
+    },
+    {
+      "administrative_district": "龙岗",
+      "area": "布吉",
+      "building_name": "百合世广场",
+      "property_type": "住宅、办公、商业",
+      "reference_house_type": "97-174㎡3-5房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.131627,22.584765"
+    },
+    {
+      "administrative_district": "龙岗",
+      "area": "大运",
+      "building_name": "龙禧府",
+      "property_type": "住宅",
+      "reference_house_type": "81-192㎡3房住宅",
+      "remarks": "建设中",
+      "coordinates": "114.228765,22.651923"
+    },
+    {
+      "administrative_district": "龙岗",
+      "area": "大运",
+      "building_name": "中粮中央公园五期",
+      "property_type": "住宅",
+      "reference_house_type": "126-162㎡4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.231627,22.654765"
+    },
+    {
+      "administrative_district": "光明",
+      "area": "科学城",
+      "building_name": "金华北辰府",
+      "property_type": "住宅",
+      "reference_house_type": "69-110㎡2-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.928765,22.701923"
+    },
+    {
+      "administrative_district": "光明",
+      "area": "光明",
+      "building_name": "勤诚达誉府",
+      "property_type": "住宅",
+      "reference_house_type": "89-113㎡3-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "113.931627,22.704765"
+    },
+    {
+      "administrative_district": "坪山",
+      "area": "坪山",
+      "building_name": "深业山水东城一期",
+      "property_type": "住宅",
+      "reference_house_type": "81-138㎡3-4房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.328765,22.751923"
+    },
+    {
+      "administrative_district": "坪山",
+      "area": "坪山",
+      "building_name": "卓越蔚蓝（云府、麓府、星曜府）",
+      "property_type": "住宅、公寓、办公、商业",
+      "reference_house_type": "66-98㎡2-3房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.331627,22.754765"
+    },
+    {
+      "administrative_district": "盐田",
+      "area": "沙头角",
+      "building_name": "合正湾府",
+      "property_type": "住宅",
+      "reference_house_type": "89-147㎡3-4房住宅",
+      "remarks": "建设中",
+      "coordinates": "114.258765,22.581924"
+    },
+    {
+      "administrative_district": "盐田",
+      "area": "沙头角",
+      "building_name": "京基梧桐寓",
+      "property_type": "住宅、商业",
+      "reference_house_type": "101-180㎡3-5房住宅",
+      "remarks": "样板房开放中",
+      "coordinates": "114.261627,22.584765"
+    },
+    {
+      "administrative_district": "大鹏",
+      "area": "大鹏",
+      "building_name": "南澳名苑",
+      "property_type": "住宅、公寓、酒店、商业",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.528765,22.519234"
+    },
+    {
+      "administrative_district": "大鹏",
+      "area": "大鹏",
+      "building_name": "新溪花园",
+      "property_type": "住宅",
+      "reference_house_type": "待定",
+      "remarks": "建设中",
+      "coordinates": "114.531627,22.521765"
+    }
+  ]
+}
