@@ -1,314 +1,342 @@
 <template>
-  <div class="shenzhen-map-container">      
-    <v-chart 
-      :option="chartOption" 
-      :autoresize="true"
-      style="height: 600px; width: 100%;"
-    />
+  <div class="map-container">  
+    <div ref="chartRef" class="chart"></div>
+
+    <!-- 新增：移动端下方平移按钮 -->
+    <div class="mobile-controls" v-if="isMobile">
+      <button class="btn" @click="panMap('left')">左移</button>
+      <button class="btn" @click="panMap('right')">右移</button>
+    </div>
   </div>
 </template>
 
-<script>
-import { use } from 'echarts/core';
-import { CanvasRenderer } from 'echarts/renderers';
-import { MapChart, ScatterChart } from 'echarts/charts';
-import { TitleComponent, TooltipComponent, VisualMapComponent, LegendComponent } from 'echarts/components';
-import VChart from 'vue-echarts';
-// 导入深圳市GeoJSON数据
-import shenzhenGeoJSON from '@/assets/area/shenzhen.json';
-// 导入2026年深圳新开楼盘预测数据
-import buildingData from '@/doc/2026年深圳新开楼盘预测.json';
-// 引入 echarts 核心模块
-import * as echarts from 'echarts/core';
+<script setup>
+/**
+ * 依赖：
+ * - ECharts（地理坐标系）
+ * 数据：
+ * - ./assets/area/shenzhen.json 作为深圳GeoJSON
+ * - ./doc/2026年深圳新开楼盘预测.json 楼盘点数据
+ */
+import { onMounted, onBeforeUnmount, ref } from 'vue'
+import * as echarts from 'echarts'
+import shenzhenGeo from '@/assets/area/shenzhen.json'
+import buildingsRaw from '@/doc/2026年深圳新开楼盘预测.json'
+// 修改导入方式为动态加载
+async function loadData() {
+  try {
+    // 动态加载地图数据
+    const shenzhenResponse = await fetch('/assets/area/shenzhen.json')
+    const shenzhenGeo = await shenzhenResponse.json()
+    
+    // 动态加载楼盘数据
+    const buildingsResponse = await fetch('/assets/area/2026年深圳新开楼盘预测.json')
+    const buildingsRaw = await buildingsResponse.json()
+    
+    return { shenzhenGeo, buildingsRaw }
+  } catch (error) {
+    console.error('加载数据失败:', error)
+    return null
+  }
+}
+// 分类与颜色映射（可按需调整）
+const categoryColor = {
+  '住宅': '#e74c3c',
+  '公寓': '#3498db',
+  '办公': '#9b59b6',
+  '酒店': '#f1c40f',
+  '商业/其他': '#2ecc71'
+}
+const categories = Object.keys(categoryColor)
 
-use([CanvasRenderer, MapChart, ScatterChart, TitleComponent, TooltipComponent, VisualMapComponent, LegendComponent]);
+const chartRef = ref(null)
+let chart
+let baseSeries = []  // 新增：缓存基础系列，用于防拥挤重算
 
-export default {
-  name: 'ShenzhenMapView',
-  components: {
-    VChart
-  },
-  data() {
-    return {
-      chartOption: {
-        title: {
-          text: '深圳市行政区划图 - 2026年新开楼盘预测',
-          left: 'center',
-          textStyle: {
-            fontSize: 16
-          }
-        },
-        tooltip: {
-          trigger: 'item',
-          formatter: (params) => {
-            if (params.componentType === 'series') {
-              if (params.seriesType === 'scatter') {
-                const data = params.data;
-                return `
-                  <div style="font-weight: bold; margin-bottom: 8px;">${data.building_name}</div>
-                  <div>行政区：${data.administrative_district}</div>
-                  <div>区域：${data.area}</div>
-                  <div>物业类型：${data.property_type}</div>
-                  <div>参考户型：${data.reference_house_type}</div>
-                  <div>状态：${data.remarks}</div>
-                  <div>坐标：[${data.coordinates[0].toFixed(6)}, ${data.coordinates[1].toFixed(6)}]</div>
-                `;
-              } else if (params.seriesType === 'map') {
-                return `${params.name}<br/>区域代码：${params.value}`;
-              }
-            }
-            return params.name;
-          }
-        },
-        legend: {
-          orient: 'vertical',
-          right: 10,
-          top: 'center',
-          data: ['住宅', '公寓', '商业', '办公', '酒店', '产业用房', '行政区划']
-        },
-        visualMap: {
-          type: 'piecewise',
-          pieces: [
-            {min: 440300, max: 440311, label: '深圳市辖区'},
-          ],
-          left: 'left',
-          top: 'bottom',
-          textStyle: {
-            color: '#000'
-          }
-        },
-        geo: {
-          map: 'shenzhen',
-          roam: true,
-          label: {
-            emphasis: {
-              show: true
-            }
-          },
-          itemStyle: {
-            areaColor: '#f5f5f5',
-            borderColor: '#ccc'
-          }
-        },
-        series: [
-          {
-            name: '行政区划',
-            type: 'map',
-            map: 'shenzhen',
-            roam: true,
-            emphasis: {
-              label: {
-                show: true
-              }
-            },
-            data: [
-              {name: '罗湖区', value: 440303},
-              {name: '福田区', value: 440304},
-              {name: '南山区', value: 440305},
-              {name: '宝安区', value: 440306},
-              {name: '龙岗区', value: 440307},
-              {name: '盐田区', value: 440308},
-              {name: '龙华区', value: 440309},
-              {name: '坪山区', value: 440310},
-              {name: '光明区', value: 440311}
-            ],
-            nameMap: {
-              '深圳市': '深圳'
-            }
-          },
-          {
-            name: '住宅',
-            type: 'scatter',
-            coordinateSystem: 'geo',
-            data: [],
-            symbol: 'circle',
-            symbolSize: 10,
-            itemStyle: {
-              color: '#e74c3c'
-            },
-            emphasis: {
-              scale: true,
-              itemStyle: {
-                color: '#c0392b',
-                shadowBlur: 10,
-                shadowColor: 'rgba(231, 76, 60, 0.5)'
-              }
-            }
-          },
-          {
-            name: '公寓',
-            type: 'scatter',
-            coordinateSystem: 'geo',
-            data: [],
-            symbol: 'rect',
-            symbolSize: 10,
-            itemStyle: {
-              color: '#3498db'
-            },
-            emphasis: {
-              scale: true,
-              itemStyle: {
-                color: '#2980b9',
-                shadowBlur: 10,
-                shadowColor: 'rgba(52, 152, 219, 0.5)'
-              }
-            }
-          },
-          {
-            name: '商业',
-            type: 'scatter',
-            coordinateSystem: 'geo',
-            data: [],
-            symbol: 'diamond',
-            symbolSize: 10,
-            itemStyle: {
-              color: '#9b59b6'
-            },
-            emphasis: {
-              scale: true,
-              itemStyle: {
-                color: '#8e44ad',
-                shadowBlur: 10,
-                shadowColor: 'rgba(155, 89, 182, 0.5)'
-              }
-            }
-          },
-          {
-            name: '办公',
-            type: 'scatter',
-            coordinateSystem: 'geo',
-            data: [],
-            symbol: 'triangle',
-            symbolSize: 10,
-            itemStyle: {
-              color: '#f39c12'
-            },
-            emphasis: {
-              scale: true,
-              itemStyle: {
-                color: '#d35400',
-                shadowBlur: 10,
-                shadowColor: 'rgba(243, 156, 18, 0.5)'
-              }
-            }
-          },
-          {
-            name: '酒店',
-            type: 'scatter',
-            coordinateSystem: 'geo',
-            data: [],
-            symbol: 'pin',
-            symbolSize: 10,
-            itemStyle: {
-              color: '#1abc9c'
-            },
-            emphasis: {
-              scale: true,
-              itemStyle: {
-                color: '#16a085',
-                shadowBlur: 10,
-                shadowColor: 'rgba(26, 188, 156, 0.5)'
-              }
-            }
-          },
-          {
-            name: '产业用房',
-            type: 'scatter',
-            coordinateSystem: 'geo',
-            data: [],
-            symbol: 'arrow',
-            symbolSize: 10,
-            itemStyle: {
-              color: '#95a5a6'
-            },
-            emphasis: {
-              scale: true,
-              itemStyle: {
-                color: '#7f8c8d',
-                shadowBlur: 10,
-                shadowColor: 'rgba(149, 165, 166, 0.5)'
-              }
-            }
-          }
-        ]
-      }
-    };
-  },
-  created() {
-    this.registerShenzhenMap();
-    this.processBuildingData();
-  },
-  methods: {
-    registerShenzhenMap() {
-      console.log('注册深圳地图:', shenzhenGeoJSON);
-      echarts.registerMap('shenzhen', shenzhenGeoJSON);
-    },
+// 新增：移动端检测
+const isMobile = ref(false)
+function updateIsMobile() {
+  isMobile.value = window.innerWidth <= 768
+}
 
-    processBuildingData() {
-      if (buildingData && buildingData.data) {
-        console.log('原始楼盘数据:', buildingData.data);
+function getPrimaryCategory(propertyType) {
+  // 优先级：住宅 > 公寓 > 办公 > 酒店 > 商业/其他
+  const text = (propertyType || '').toString()
+  if (text.includes('住宅')) return '住宅'
+  if (text.includes('公寓')) return '公寓'
+  if (text.includes('办公')) return '办公'
+  if (text.includes('酒店')) return '酒店'
+  return '商业/其他'
+}
 
-        const propertyTypeMap = {
-          '住宅': [],
-          '公寓': [],
-          '商业': [],
-          '办公': [],
-          '酒店': [],
-          '产业用房': []
-        };
-
-        buildingData.data.forEach((item, index) => {
-          try {
-            // 解析坐标 - 注意ECharts需要[经度, 纬度]格式
-            const coords = item.coordinates.split(',').map(coord => parseFloat(coord.trim()));
-            if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
-              const buildingDataItem = {
-                ...item,
-                coordinates: coords,
-                value: coords // ECharts scatter需要value字段作为坐标
-              };
-
-              // 根据物业类型分类
-              const propertyTypes = item.property_type.split('、');
-              propertyTypes.forEach(type => {
-                const trimmedType = type.trim();
-                if (propertyTypeMap[trimmedType]) {
-                  propertyTypeMap[trimmedType].push(buildingDataItem);
-                }
-              });
-
-              console.log(`处理第${index + 1}个楼盘:`, item.building_name, '坐标:', coords);
-            } else {
-              console.warn(`坐标格式错误: ${item.coordinates}`, item.building_name);
-            }
-          } catch (error) {
-            console.error(`处理楼盘数据出错:`, item, error);
-          }
-        });
-
-        // 更新图表数据
-        Object.keys(propertyTypeMap).forEach((type, index) => {
-          const seriesIndex = index + 1;
-          if (this.chartOption.series[seriesIndex]) {
-            this.chartOption.series[seriesIndex].data = propertyTypeMap[type];
-            console.log(`${type}类型数据:`, propertyTypeMap[type].length, '个项目');
-          }
-        });
-
-        console.log('楼盘数据处理完成，总计:', buildingData.data.length, '个项目');
-      } else {
-        console.error('楼盘数据加载失败');
-      }
+function toPointData(record) {
+  // 坐标格式："lng,lat" -> [lng, lat]
+  const [lngStr, latStr] = (record.coordinates || '').split(',')
+  const lng = Number(lngStr)
+  const lat = Number(latStr)
+  return {
+    name: record.building_name,
+    value: [lng, lat],
+    info: {
+      行政区: record.administrative_district,
+      片区: record.area,
+      物业类型: record.property_type,
+      户型参考: record.reference_house_type,
+      备注: record.remarks
     }
   }
-};
+}
+
+function buildSeries(data) {
+  const grouped = new Map()
+  for (const cat of categories) grouped.set(cat, [])
+
+  for (const item of data) {
+    const cat = getPrimaryCategory(item.property_type)
+    grouped.get(cat).push(toPointData(item))
+  }
+
+  // 生成每类一个 scatter 系列（根据是否移动端调整尺寸与标签样式）
+  const series = categories.map(cat => ({
+    name: cat,
+    type: 'scatter',
+    coordinateSystem: 'geo',
+    data: grouped.get(cat),
+    symbolSize: isMobile.value ? 8 : 10,
+    itemStyle: { color: categoryColor[cat] },
+    label: {
+      show: true,
+      formatter: p => p.name || '',
+      position: 'right',
+      offset: isMobile.value ? [4, 0] : [6, 0],
+      color: '#666',
+      fontSize: isMobile.value ? 9 : 10
+    },
+    emphasis: {
+      scale: true,
+      label: { show: true }
+    }
+  }))
+  return series
+}
+
+// 新增：标签防拥挤（移动端阈值更保守）
+function applyDeclutter() {
+  if (!chart) return
+  const threshold = isMobile.value ? 20 : 18
+  const occupied = []
+
+  const decluttered = baseSeries.map(s => {
+    const newData = s.data.map(item => {
+      const px = chart.convertToPixel('geo', item.value)
+      let show = true
+      for (const p of occupied) {
+        if (Math.abs(px[0] - p[0]) < threshold && Math.abs(px[1] - p[1]) < threshold) {
+          show = false
+          break
+        }
+      }
+      if (show) occupied.push(px)
+      return {
+        ...item,
+        label: {
+          show,
+          formatter: item.label?.formatter || ((p) => p.name || ''),
+          position: item.label?.position || 'right',
+          offset: item.label?.offset || (isMobile.value ? [4, 0] : [6, 0]),
+          color: item.label?.color || '#666',
+          fontSize: item.label?.fontSize || (isMobile.value ? 9 : 10)
+        }
+      }
+    })
+    return { ...s, data: newData }
+  })
+
+  chart.setOption({ series: decluttered }, false)
+}
+
+// 新增：地图平移（左右按钮）
+function panMap(direction) {
+  if (!chart) return
+  const opt = chart.getOption()
+  const currentZoom = opt?.geo?.[0]?.zoom || 1
+  // 步长按缩放动态调整，缩放越大，像素位移稍减，保证平移“视觉合理”
+  const baseStep = isMobile.value ? 80 : 60
+  const step = Math.max(30, Math.round(baseStep / Math.sqrt(currentZoom)))
+  const dx = direction === 'left' ? -step : step
+  chart.dispatchAction({
+    type: 'geoRoam',
+    // componentType 不填也可，由 geoRoam 推断；若填可用：componentType: 'geo'
+    // name: 'Shenzhen', // 若有多个 geo，可指定名字，这里单个 geo 可省略
+    // 只做平移：dx 像素水平位移
+    dx,
+    dy: 0
+  })
+}
+
+async function initChart() {
+  if (!chartRef.value) return
+  const data = await loadData()
+  if (!data) return
+  const { shenzhenGeo, buildingsRaw } = data
+
+  chart = echarts.init(chartRef.value)
+
+  // 注册地图
+  echarts.registerMap('Shenzhen', shenzhenGeo)
+
+  updateIsMobile() // 初始化移动端状态
+
+  baseSeries = buildSeries(buildingsRaw.data || [])
+  const option = {
+    backgroundColor: '#ffffff',
+    title: {
+      text: buildingsRaw.title || '2026年深圳新开楼盘预测',
+      left: 'center',
+      top: 10,
+      textStyle: {
+        fontSize: isMobile.value ? 14 : 16
+      }
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: params => {
+        const d = params.data
+        if (!d || !d.info) return params.name || ''
+        const info = d.info
+        return [
+          `<div style="min-width:${isMobile.value ? 180 : 220}px;">`,
+          `<div style="font-weight:bold;margin-bottom:6px;">${params.name}</div>`,
+          `<div>行政区：${info.行政区}</div>`,
+          `<div>片区：${info.片区}</div>`,
+          `<div>物业类型：${info.物业类型}</div>`,
+          `<div>户型参考：${info.户型参考}</div>`,
+          `<div>备注：${info.备注}</div>`,
+          `</div>`
+        ].join('')
+      }
+    },
+    legend: {
+      orient: isMobile.value ? 'vertical' : 'horizontal',
+      top: isMobile.value ? 'middle' : 40,
+      right: isMobile.value ? 8 : 'auto',
+      left: isMobile.value ? 'auto' : 'center',
+      itemWidth: isMobile.value ? 10 : 14,
+      itemHeight: isMobile.value ? 10 : 14,
+      textStyle: { fontSize: isMobile.value ? 11 : 12 },
+      data: categories
+    },
+    geo: {
+      map: 'Shenzhen',
+      roam: true,
+      zoom: isMobile.value ? 2.0 : 1.8, // 移动端进一步放大
+      label: { show: false },
+      itemStyle: {
+        areaColor: '#f5f7fa',
+        borderColor: '#dcdfe6',
+        borderWidth: 1
+      },
+      emphasis: {
+        itemStyle: { areaColor: '#e6f7ff' }
+      }
+    },
+    series: baseSeries
+  }
+
+  chart.setOption(option)
+
+  // 初次应用防拥挤
+  applyDeclutter()
+
+  // 地图拖拽/缩放时，重算标签可见性
+  chart.on('georoam', () => {
+    applyDeclutter()
+  })
+
+  // 响应式
+  window.addEventListener('resize', handleResize)
+}
+
+function handleResize() {
+  if (chart) {
+    updateIsMobile()
+    // 移动端状态变化时，重建基础 series 并更新
+    baseSeries = buildSeries(buildingsRaw.data || [])
+    chart.setOption({
+      legend: {
+        orient: isMobile.value ? 'vertical' : 'horizontal',
+        top: isMobile.value ? 'middle' : 40,
+        right: isMobile.value ? 8 : 'auto',
+        left: isMobile.value ? 'auto' : 'center',
+        itemWidth: isMobile.value ? 10 : 14,
+        itemHeight: isMobile.value ? 10 : 14,
+        textStyle: { fontSize: isMobile.value ? 11 : 12 }
+      },
+      geo: {
+        zoom: isMobile.value ? 2.0 : 1.8
+      },
+      title: {
+        textStyle: { fontSize: isMobile.value ? 14 : 16 }
+      },
+      series: baseSeries
+    }, false)
+
+    chart.resize()
+    // 重新计算标签拥挤情况
+    applyDeclutter()
+  }
+}
+
+onMounted(() => {
+  initChart()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+  if (chart) {
+    chart.dispose()
+    chart = null
+  }
+})
 </script>
 
 <style scoped>
-.shenzhen-map-container {
-  padding: 20px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+.map-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column; /* 新增：按钮在图下方 */
+}
+.chart {
+  flex: 1;
+  min-height: 520px;
+}
+
+/* 新增：移动端更高的视窗高度与控件样式 */
+@media (max-width: 768px) {
+  .chart {
+    min-height: 70vh;
+  }
+  .mobile-controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    padding: 10px 12px 14px;
+    border-top: 1px solid #eee;
+    background: #fff;
+  }
+  .mobile-controls .btn {
+    padding: 8px 14px;
+    font-size: 14px;
+    color: #333;
+    background: #f5f7fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-controls .btn:active {
+    background: #e9eef5;
+  }
 }
 </style>
