@@ -24,11 +24,11 @@ import * as echarts from 'echarts'
 async function loadData() {
   try {
     // 动态加载地图数据
-    const shenzhenResponse = await fetch('/assets/area/shenzhen.json')
+    const shenzhenResponse = await fetch('/area/shenzhen.json')
     const shenzhenGeo = await shenzhenResponse.json()
     
     // 动态加载楼盘数据
-    const buildingsResponse = await fetch('/assets/area/2026年深圳新开楼盘预测.json')
+    const buildingsResponse = await fetch('/area/2026年深圳新开楼盘预测.json')
     const buildingsRaw = await buildingsResponse.json()
     
     return { shenzhenGeo, buildingsRaw }
