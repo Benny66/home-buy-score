@@ -20,8 +20,6 @@
  */
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 import * as echarts from 'echarts'
-import shenzhenGeo from '@/assets/area/shenzhen.json'
-import buildingsRaw from '@/doc/2026年深圳新开楼盘预测.json'
 // 修改导入方式为动态加载
 async function loadData() {
   try {
